@@ -3,6 +3,7 @@ package catdany.bfdist.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import catdany.bfdist.Main;
@@ -17,7 +18,7 @@ public class BFServer implements Runnable
 	private Console console = new Console(this);
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private Thread serverThread;
-	
+	public ByteBuffer rngData;
 	
 	private BFServer(int port)
 	{
@@ -100,5 +101,10 @@ public class BFServer implements Runnable
 		{
 			BFLog.d("Attempted to remove a client that is not connected.");
 		}
+	}
+	
+	protected ArrayList<ClientHandler> getClients()
+	{
+		return clients;
 	}
 }

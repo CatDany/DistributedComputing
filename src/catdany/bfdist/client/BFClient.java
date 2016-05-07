@@ -39,6 +39,11 @@ public class BFClient
 		}
 	}
 	
+	public ServerCom getServerCom()
+	{
+		return com;
+	}
+	
 	public static BFClient getClient()
 	{
 		if (Main.getSide().isClient())

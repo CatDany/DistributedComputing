@@ -86,6 +86,10 @@ public class ClientHandler implements Runnable
 		}
 	}
 	
+	/**
+	 * Send a message to this client
+	 * @param msg
+	 */
 	public void send(String msg)
 	{
 		out.println(msg);

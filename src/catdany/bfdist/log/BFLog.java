@@ -70,7 +70,8 @@ public class BFLog
 	}
 	
 	/**
-	 * {@link #t(Exception)} -> exit
+	 * {@link #t(Exception)} -> exit<br>
+	 * Exit code is a hash code of the unformatted error message
 	 * @param format
 	 * @param args
 	 */
@@ -82,6 +83,11 @@ public class BFLog
 		System.exit(code);
 	}
 	
+	/**
+	 * NYFI Temporarily just dumps stuff to sysout
+	 * @param format
+	 * @param args
+	 */
 	private static void log(String format, Object... args)
 	{
 		System.out.println("[Log] " + String.format(format, args));

@@ -62,12 +62,21 @@ public class ServerCom implements Runnable
 		}
 	}
 	
+	/**
+	 * Send a message to server
+	 * @param msg
+	 */
 	public void sendToServer(String msg)
 	{
 		out.println(msg);
 		BFLog.d("Sent '%s' to server", msg);
 	}
 	
+	/**
+	 * Send a byte array to server (temporarily sends hexadecimal encoded byte-array)<br>
+	 * TODO: make it send bytes instead of hex-binary
+	 * @param bytes
+	 */
 	public void sendToServer(byte[] bytes)
 	{
 		sendToServer(DatatypeConverter.printHexBinary(bytes));

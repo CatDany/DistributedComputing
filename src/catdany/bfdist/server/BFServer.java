@@ -1,6 +1,7 @@
 package catdany.bfdist.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -42,6 +43,13 @@ public class BFServer implements Runnable
 		serverThread.start();
 	}
 	
+	/**
+	 * Creates a new instance of {@link BFServer} for given port.<br>
+	 * Saves it in {@link BFServer#instance}, so you can refer to it later.
+	 * @param port
+	 * @return
+	 * @see BFServer#getServer()
+	 */
 	public static BFServer instantiate(int port)
 	{
 		instance = new BFServer(port);
@@ -69,6 +77,15 @@ public class BFServer implements Runnable
 		}
 	}
 	
+	/**
+	 * Get {@link BFServer} instance.<br>
+	 * Will throw an exception if called on client-side.
+	 * @return
+	 * {@link BFServer} instance if called on server-side<br>
+	 * <code>null</code> if called on client-side
+	 * @see BFServer#instantiate(InetAddress, int)
+	 * @return
+	 */
 	public static BFServer getServer()
 	{
 		if (Main.getSide().isServer())
@@ -82,6 +99,10 @@ public class BFServer implements Runnable
 		}
 	}
 	
+	/**
+	 * Send a message to all connected clients
+	 * @param msg
+	 */
 	public void sendToAll(String msg)
 	{
 		for (ClientHandler i : clients)
@@ -90,6 +111,10 @@ public class BFServer implements Runnable
 		}
 	}
 	
+	/**
+	 * Kick connected client
+	 * @param client
+	 */
 	public void kick(ClientHandler client)
 	{
 		if (clients.contains(client))
@@ -103,6 +128,20 @@ public class BFServer implements Runnable
 		}
 	}
 	
+	/**
+	 * Get {@link Console} object
+	 * @return
+	 */
+	protected Console getConsole()
+	{
+		return console;
+	}
+	
+	/**
+	 * Get all connected clients<br>
+	 * <b>Warning:</b> use {@link ArrayList#clone()} you intend to modify it
+	 * @return
+	 */
 	protected ArrayList<ClientHandler> getClients()
 	{
 		return clients;

@@ -5,5 +5,5 @@ set /p BFport="Server port: "
 IF [%BFip%] EQU [] (
   set BFip=localhost
   )
-java -jar "bfdist_1.0-a1.jar" client %BFport% %BFip%
+java -jar "bfdist_1.0-a2.jar" client %BFport% %BFip% --enableDebugLogging
 pause

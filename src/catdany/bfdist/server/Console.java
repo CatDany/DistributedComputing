@@ -30,6 +30,7 @@ public class Console implements Runnable
 			try
 			{
 				String read = in.readLine();
+				BFLog.logToFile("[SYSIN] " + read);
 				if (read.startsWith("rng") && BFHelper.isInteger(read.substring(4)))
 				{
 					ArrayList<ClientHandler> clients = server.getClients();

@@ -1,11 +1,51 @@
 package catdany.bfdist.log;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Calendar;
+
+import catdany.bfdist.BFHelper;
+
 public class BFLog
 {
-	/*
-	 * TODO: Logging system
+	private static Level logLevel;
+	private static File logFolder = new File("logs");
+	private static File logFile;
+	private static FileWriter logFileWriter;
+	
+	/**
+	 * Initialize a logger by setting the logging level
+	 * @param logLevel
 	 */
-	public static final BFLog instance = new BFLog();
+	public static void init(Level logLevel)
+	{
+		BFLog.logLevel = logLevel;
+		log(Level.ALL, "Logger initialized. Level threshold is %s.", logLevel);
+		if (!logFolder.exists() || !logFolder.isDirectory())
+		{
+			logFolder.mkdir();
+		}
+		logFile = new File(logFolder, BFHelper.dateFormatFile.format(Calendar.getInstance().getTime()) + ".txt");
+		try
+		{
+			logFileWriter = new FileWriter(logFile);
+		}
+		catch (IOException t)
+		{
+			log(Level.ALL, "Couldn't create a log file: %s", logFile.getAbsolutePath());
+			t(t);
+		}
+	}
+	
+	/**
+	 * Get current logging level
+	 * @return
+	 */
+	public static Level getLoggingLevel()
+	{
+		return logLevel;
+	}
 	
 	/**
 	 * Info logging
@@ -14,7 +54,7 @@ public class BFLog
 	 */
 	public static void i(String format, Object... args)
 	{
-		log(format, args);
+		log(Level.INFO, format, args);
 	}
 	
 	/**
@@ -24,7 +64,7 @@ public class BFLog
 	 */
 	public static void e(String format, Object... args)
 	{
-		log(format, args);
+		log(Level.ERROR, format, args);
 	}
 	
 	/**
@@ -34,7 +74,7 @@ public class BFLog
 	 */
 	public static void d(String format, Object... args)
 	{
-		log(format, args);
+		log(Level.DEBUG, format, args);
 	}
 	
 	/**
@@ -44,18 +84,22 @@ public class BFLog
 	 */
 	public static void w(String format, Object... args)
 	{
-		log(format, args);
+		log(Level.WARN, format, args);
 	}
 	
 	/**
-	 * Print stack trace
+	 * Log stack trace
 	 * @param t
 	 * @param format
 	 * @param args
 	 */
 	public static void t(Exception t)
 	{
-		t.printStackTrace();
+		log(Level.ERROR, t.getClass().getCanonicalName() + ": " + t.getMessage());
+		for (StackTraceElement i : t.getStackTrace())
+		{
+			log(Level.ERROR, "  at " + i.toString());
+		}
 	}
 	
 	/**
@@ -77,19 +121,79 @@ public class BFLog
 	 */
 	public static void exit(String format, Object... args)
 	{
-		t(format, args);
+		if (logLevel == null)
+		{
+			System.out.println("Logger has not been initialized.");
+		}
+		else	
+		{
+			t(format, args);
+		}
 		int code = format.hashCode();
 		System.err.println(String.format("[Log-EXIT] Exit code: %s", code));
 		System.exit(code);
 	}
 	
 	/**
-	 * NYFI Temporarily just dumps stuff to sysout
-	 * @param format
-	 * @param args
+	 * Logging
+	 * @param level Logging level
+	 * @param format Message format
+	 * @param args Arguments for formatting
+	 * @see String#format(String, Object...)
 	 */
-	private static void log(String format, Object... args)
+	public static void log(Level level, String format, Object... args)
 	{
-		System.out.println("[Log] " + String.format(format, args));
+		if (logLevel == null)
+		{
+			System.out.println("Logger has not been initialized.");
+		}
+		else if (level.value <= logLevel.value)
+		{
+			String s = String.format("[Log] [%s] [%s] [%s] %s",
+					BFHelper.dateFormatVersion.format(Calendar.getInstance().getTime()),
+					Thread.currentThread().getName(),
+					level,
+					String.format(format, args));
+			System.out.println(s);
+			logToFile(s);
+		}
+	}
+	
+	/**
+	 * Used internally to write a line to log file.<br>
+	 * Use {@link BFLog#log(Level, String, Object...)} instead if you want to log properly.
+	 */
+	public static void logToFile(String s)
+	{
+		if (logFileWriter != null)
+		{
+			try
+			{
+				logFileWriter.write(s + "\n");
+				logFileWriter.flush();
+			}
+			catch (IOException t)
+			{
+				logFileWriter = null;
+				log(Level.ALL, "Couldn't write a line to log file: %s | %s", s, logFile.getAbsolutePath());
+				t(t);
+			}
+		}
+	}
+	
+	public enum Level
+	{
+		ERROR(0),
+		WARN(1),
+		INFO(2),
+		DEBUG(3),
+		ALL(-1);
+		
+		public final int value;
+		
+		private Level(int value)
+		{
+			this.value = value;
+		}
 	}
 }

@@ -73,8 +73,7 @@ public class ServerCom implements Runnable
 	}
 	
 	/**
-	 * Send a byte array to server (temporarily sends hexadecimal encoded byte-array)<br>
-	 * TODO: make it send bytes instead of hex-binary
+	 * Send a byte array to server (temporarily sends hexadecimal encoded byte-array)
 	 * @param bytes
 	 */
 	public void sendToServer(byte[] bytes)

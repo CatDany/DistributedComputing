@@ -17,11 +17,11 @@ public class Main
 	/**
 	 * Version in convention (major.minor-maintenance/build)
 	 */
-	public static final String VERSION_NAME = "1.0-a1";
+	public static final String VERSION_NAME = "1.0-a2";
 	/**
 	 * Datetime in <u>seconds</u> representing when this version was built
 	 */
-	public static final long VERSION_DATE = 1463061137L;
+	public static final long VERSION_DATE = 1463066370L;
 	
 	/**
 	 * Side that the program is running on (client/server)<br>
@@ -41,6 +41,7 @@ public class Main
 	 */
 	public static void main(String[] args)
 	{
+		BFLog.init(BFHelper.arrayContains(args, "--enableDebugLogging", false) ? BFLog.Level.DEBUG : BFLog.Level.INFO);
 		BFLog.i("You're running DistComp by CatDany. Current version is %s (%s)", VERSION_NAME, getBuildDate());
 		if (args.length < 2)
 		{
@@ -99,12 +100,12 @@ public class Main
 	
 	/**
 	 * Get formatted date representing when the current version was built<br>
-	 * Format: {@link BFHelper#dateFormat}<br>
+	 * Format: {@link BFHelper#dateFormatVersion}<br>
 	 * Datetime used: {@link Main#VERSION_DATE};
 	 * @return
 	 */
 	public static String getBuildDate()
 	{
-		return BFHelper.dateFormat.format(new Date(VERSION_DATE * 1000));
+		return BFHelper.dateFormatVersion.format(new Date(VERSION_DATE * 1000));
 	}
 }

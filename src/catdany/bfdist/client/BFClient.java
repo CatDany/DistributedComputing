@@ -48,7 +48,7 @@ public class BFClient
 		{
 			socket = new Socket(ip, port);
 			this.com = new ServerCom(socket);
-			BFLog.d("Connected to server.");
+			BFLog.i("Connected to server: %s", ip.getCanonicalHostName());
 		}
 		catch (IOException t)
 		{

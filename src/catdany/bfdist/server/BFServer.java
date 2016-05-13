@@ -67,7 +67,7 @@ public class BFServer implements Runnable
 				int id = clients.size();
 				ClientHandler ch = new ClientHandler(id, connectedClient, this);
 				clients.add(ch);
-				BFLog.i("Client connected (%s)", id);
+				BFLog.i("Client connected (id: %s, from: %s)", id, socket.getInetAddress().getCanonicalHostName());
 			}
 			catch (IOException t)
 			{

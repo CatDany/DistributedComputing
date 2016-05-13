@@ -17,11 +17,11 @@ public class Main
 	/**
 	 * Version in convention (major.minor-maintenance/build)
 	 */
-	public static final String VERSION_NAME = "1.0-a2";
+	public static final String VERSION_NAME = "1.0-a3";
 	/**
 	 * Datetime in <u>seconds</u> representing when this version was built
 	 */
-	public static final long VERSION_DATE = 1463066370L;
+	public static final long VERSION_DATE = 1463111449L;
 	
 	/**
 	 * Side that the program is running on (client/server)<br>

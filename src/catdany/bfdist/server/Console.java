@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import javax.xml.bind.DatatypeConverter;
+
 import catdany.bfdist.BFHelper;
 import catdany.bfdist.log.BFLog;
 
@@ -48,6 +50,14 @@ public class Console implements Runnable
 							c.send("RANDOM " + a);
 						}
 					}
+				}
+				if (read.startsWith("hex>iso "))
+				{
+					BFLog.d("hex>iso: %s", new String(DatatypeConverter.parseHexBinary(read.substring(8)), BFHelper.charset));
+				}
+				if (read.startsWith("iso>hex "))
+				{
+					BFLog.d("iso>hex: %s", DatatypeConverter.printHexBinary(read.substring(8).getBytes(BFHelper.charset)));
 				}
 			}
 			catch (IOException t)

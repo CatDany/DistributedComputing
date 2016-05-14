@@ -33,22 +33,37 @@ public class Console implements Runnable
 			{
 				String read = in.readLine();
 				BFLog.logToFile("[SYSIN] " + read);
-				if (read.startsWith("rng ") && BFHelper.isInteger(read.substring(4)) && Integer.parseInt(read.substring(4)) > 0)
+				int maxBytes = 8192;
+				if (read.startsWith("rng"))
 				{
-					ArrayList<ClientHandler> clients = server.getClients();
-					int comps = clients.size();
-					int amount = Integer.parseInt(read.substring(4));
-					int extra = amount % comps;
-					int amountPerClient = amount / comps;
-					server.rngData = ByteBuffer.allocate(amount);
-					for (int i = 0; i < comps; i++)
+					if (read.length() > 4 && BFHelper.isInteger(read.substring(4)) && Integer.parseInt(read.substring(4)) > 0 && Integer.parseInt(read.substring(4)) <= maxBytes)
 					{
-						ClientHandler c = clients.get(i);
-						int a = amountPerClient + (i < extra ? 1 : 0);
-						if (a > 0)
+						ArrayList<ClientHandler> clients = server.getClients();
+						if (!clients.isEmpty())
 						{
-							c.send("RANDOM " + a);
+							int comps = clients.size();
+							int amount = Integer.parseInt(read.substring(4));
+							int extra = amount % comps;
+							int amountPerClient = amount / comps;
+							server.rngData = ByteBuffer.allocate(amount);
+							for (int i = 0; i < comps; i++)
+							{
+								ClientHandler c = clients.get(i);
+								int a = amountPerClient + (i < extra ? 1 : 0);
+								if (a > 0)
+								{
+									c.send("RANDOM " + a);
+								}
+							}
 						}
+						else
+						{
+							BFLog.w("No clients are available.");
+						}
+					}
+					else
+					{
+						BFLog.w("Console attempted to execute command 'rng x' but arguments didn't meet the requirement. x must be an integer within range [1;%s]", maxBytes);
 					}
 				}
 				if (read.startsWith("hex>iso "))

@@ -31,7 +31,7 @@ public class Console implements Runnable
 			{
 				String read = in.readLine();
 				BFLog.logToFile("[SYSIN] " + read);
-				if (read.startsWith("rng") && BFHelper.isInteger(read.substring(4)))
+				if (read.startsWith("rng ") && BFHelper.isInteger(read.substring(4)) && Integer.parseInt(read.substring(4)) > 0)
 				{
 					ArrayList<ClientHandler> clients = server.getClients();
 					int comps = clients.size();
@@ -43,7 +43,10 @@ public class Console implements Runnable
 					{
 						ClientHandler c = clients.get(i);
 						int a = amountPerClient + (i < extra ? 1 : 0);
-						c.send("RANDOM " + a);
+						if (a > 0)
+						{
+							c.send("RANDOM " + a);
+						}
 					}
 				}
 			}

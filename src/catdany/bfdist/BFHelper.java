@@ -1,5 +1,6 @@
 package catdany.bfdist;
 
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -8,6 +9,8 @@ public class BFHelper
 	public static final DateFormat dateFormatVersion = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 	public static final DateFormat dateFormatLog = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final DateFormat dateFormatFile = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+	
+	public static final Charset charset = Charset.forName("ISO-8859-15");
 	
 	/**
 	 * Tries to {@link Integer#parseInt(String)parseInt} from given string.<br> If it throws {@link NumberFormatException}, catch it and return false.

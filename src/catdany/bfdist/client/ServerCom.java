@@ -26,7 +26,7 @@ public class ServerCom implements Runnable
 		this.socket = socket;
 		try
 		{
-			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), BFHelper.charset));
 			this.outStream = socket.getOutputStream();
 			this.out = new PrintWriter(outStream, true);
 			this.comThread = new Thread(this, "Client-ServerCom");
@@ -78,21 +78,8 @@ public class ServerCom implements Runnable
 	 */
 	public void sendToServer(byte[] bytes)
 	{
-		sendToServer(DatatypeConverter.printHexBinary(bytes));
-		/* XXX: Make it twice more efficient
-		try
-		{
-			outStream.write(bytes);
-			BFLog.d("Sent %s bytes to server:", bytes.length);
-			BFLog.d(BFHelper.toHex(bytes));
-			outStream.flush();
-			//TODO: Bytes to hex and log.d them
-		}
-		catch (IOException t)
-		{
-			BFLog.t(t);
-			BFLog.e("Couldn't send bytes to server.");
-		}
-		*/
+		out.println(new String(bytes, BFHelper.charset));
+		BFLog.d("Sent %s bytes to server:", bytes.length);
+		BFLog.d(DatatypeConverter.printHexBinary(bytes));
 	}
 }

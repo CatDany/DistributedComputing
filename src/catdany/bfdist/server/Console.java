@@ -38,33 +38,45 @@ public class Console implements Runnable
 				{
 					if (read.length() > 4 && BFHelper.isInteger(read.substring(4)) && Integer.parseInt(read.substring(4)) > 0 && Integer.parseInt(read.substring(4)) <= maxBytes)
 					{
-						ArrayList<ClientHandler> clients = server.getClients();
-						if (!clients.isEmpty())
+						if (server.rngData == null)
 						{
-							int comps = clients.size();
-							int amount = Integer.parseInt(read.substring(4));
-							int extra = amount % comps;
-							int amountPerClient = amount / comps;
-							server.rngData = ByteBuffer.allocate(amount);
-							for (int i = 0; i < comps; i++)
+							ArrayList<ClientHandler> clients = server.getClients();
+							if (!clients.isEmpty())
 							{
-								ClientHandler c = clients.get(i);
-								int a = amountPerClient + (i < extra ? 1 : 0);
-								if (a > 0)
+								int comps = clients.size();
+								int amount = Integer.parseInt(read.substring(4));
+								int extra = amount % comps;
+								int amountPerClient = amount / comps;
+								server.rngData = ByteBuffer.allocate(amount);
+								for (int i = 0; i < comps; i++)
 								{
-									c.send("RANDOM " + a);
+									ClientHandler c = clients.get(i);
+									int a = amountPerClient + (i < extra ? 1 : 0);
+									if (a > 0)
+									{
+										c.send("RANDOM " + a);
+									}
 								}
+							}
+							else
+							{
+								BFLog.w("No clients are available.");
 							}
 						}
 						else
 						{
-							BFLog.w("No clients are available.");
+							BFLog.w("%s bytes were requested earlier. Unable to queue another request until the current one is complete. To cancel this, use 'cancelrng' command.", server.rngData.capacity());
 						}
 					}
 					else
 					{
 						BFLog.w("Console attempted to execute command 'rng x' but arguments didn't meet the requirement. x must be an integer within range [1;%s]", maxBytes);
 					}
+				}
+				if (read.startsWith("cancelrng"))
+				{
+					server.rngData = null;
+					BFLog.d("Random data request cancelled.");
 				}
 				if (read.startsWith("hex>iso "))
 				{

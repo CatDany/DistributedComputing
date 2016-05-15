@@ -50,7 +50,7 @@ public class ClientHandler implements Runnable
 			while ((read = in.readLine()) != null)
 			{
 				BFLog.d("Received message from client: %s", read);
-				if (read.startsWith("RNGDATA_START") && BFHelper.isInteger(read.substring(14)))
+				if (read.startsWith("RNGDATA_START") && BFHelper.isInteger(read.substring(14)) && server.rngData != null)
 				{
 					ByteBuffer bb = ByteBuffer.allocate(Integer.parseInt(read.substring(14)));
 					while (bb.hasRemaining())

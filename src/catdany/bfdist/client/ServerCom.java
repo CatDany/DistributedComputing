@@ -49,7 +49,7 @@ public class ServerCom implements Runnable
 			String read;
 			while ((read = in.readLine()) != null)
 			{
-				//FIXME:BFLog.d("Received message from server: %s", read);
+				BFLog.d("Received message from server: %s", read);
 				if (read.startsWith("SPSTART"))
 				{
 					if (syracuseThread != null)

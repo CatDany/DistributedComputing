@@ -26,7 +26,11 @@ public class BFServer implements Runnable
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private Thread serverThread;
 	public ByteBuffer rngData;
-	
+
+	/**
+	 * Write to compLog every N ms
+	 */
+	long autoCompLogTimer = 0;
 	public long autoReportTimer;
 	public BigInteger freeInterval;
 	public BigInteger clientBuffer;
@@ -167,6 +171,8 @@ public class BFServer implements Runnable
 	public void allocate(BigInteger amount, ClientHandler client)
 	{
 		client.current = amount.toString();
+		client.lastCompLogNumber = freeInterval.toString();
+		client.lastCompLogTime = System.currentTimeMillis();
 		client.send("SPSTART " + autoReportTimer + " " + freeInterval.toString() + " " + client.current);
 		client.max = freeInterval.add(amount).toString();
 		BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
@@ -182,6 +188,8 @@ public class BFServer implements Runnable
 	{
 		BigInteger current = new BigInteger(client.current);
 		BigInteger max = new BigInteger(client.max);
+		client.lastCompLogNumber = client.current;
+		client.lastCompLogTime = System.currentTimeMillis();
 		client.send("SPSTART " + autoReportTimer + " " + client.current + " " + max.subtract(current));
 		BFLog.i("Allocated [%s...%s] to %s", client.current, client.max, client);
 		BFLog.i("Free interval is set to [%s...inf]", freeInterval);
@@ -196,9 +204,11 @@ public class BFServer implements Runnable
 			p.println(freeInterval);
 			p.println(clientBuffer);
 			p.println(autoReportTimer);
+			p.print(autoCompLogTimer);
 			BFLog.i("Saved free interval [%s...inf]", freeInterval);
 			BFLog.i("Saved client buffer (%s)", clientBuffer);
 			BFLog.i("Saved auto-report time (%s)", autoReportTimer);
+			BFLog.i("Saved auto-complog time (%s)", autoCompLogTimer);
 		}
 		catch (FileNotFoundException t)
 		{
@@ -212,17 +222,20 @@ public class BFServer implements Runnable
 		try
 		{
 			List<String> serverIntervalLines = Files.readAllLines(new File("INTERVAL_SERVER.txt").toPath());
-			if (serverIntervalLines.size() >= 3)
+			if (serverIntervalLines.size() >= 4)
 			{
 				String freeIntervalStr = serverIntervalLines.get(0);
 				String clientBufferStr = serverIntervalLines.get(1);
 				String autoReportTimerStr = serverIntervalLines.get(2);
+				String autoCompLogTimerStr = serverIntervalLines.get(3);
 				freeInterval = new BigInteger(freeIntervalStr);
 				clientBuffer = new BigInteger(clientBufferStr);
 				autoReportTimer = Long.parseLong(autoReportTimerStr);
+				autoCompLogTimer = Long.parseLong(autoCompLogTimerStr);
 				BFLog.i("Restored free interval [%s...inf]", freeIntervalStr);
-				BFLog.i("Restored client buffer [%s...inf]", clientBufferStr);
-				BFLog.i("Restored auto-report time [...inf]", autoReportTimerStr);
+				BFLog.i("Restored client buffer (%s)", clientBufferStr);
+				BFLog.i("Restored auto-report time (%s)", autoReportTimerStr);
+				BFLog.i("Restored auto-complog time (%s)", autoCompLogTimerStr);
 			}
 		}
 		catch (IOException t)

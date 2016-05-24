@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +30,9 @@ public class ClientHandler implements Runnable
 
 	public String current = null;
 	public String max = null;
+	
+	long lastCompLogTime = 0;
+	String lastCompLogNumber = null;
 	
 	public ClientHandler(Socket connectedClient, BFServer server)
 	{
@@ -80,19 +82,20 @@ public class ClientHandler implements Runnable
 				}
 				else if (read.startsWith("SPCOMPLETE"))
 				{
-					BFLog.i("%s has completed its calculation.", this);
+					BFLog.i("%s has completed its calculation [%s...%s]", this, current, max);
+					compLogAuto(max, true);
 					server.allocate(server.clientBuffer, this);
 				}
 				else if (read.startsWith("SPDONE"))
 				{
 					String[] split = read.split(" ");
 					current = split[2];
-					compLog("Done after %s ms >> %s", split[1], split[2]);
+					compLogAuto(current, false);
 				}
 				else if (read.startsWith("SPTIME"))
 				{
 					String[] split = read.split(" ");
-					compLog("Report after %s ms >> %s", split[1], split[2]);
+					compLog("%s ms > %s", split[1], split[2]);
 				}
 			}
 			if (!server.shutdown)
@@ -106,6 +109,7 @@ public class ClientHandler implements Runnable
 			BFLog.w("Error occurred during client handling. Client dropped.");
 			server.kick(this);
 		}
+		compLogAuto(current, true);
 		// Closing resources
 		if (compLogger != null)
 		{
@@ -132,8 +136,19 @@ public class ClientHandler implements Runnable
 	
 	public void compLog(String format, Object... args)
 	{
-		String date = BFHelper.dateFormatLog.format(new Date());
-		compLogger.println(String.format("[%s] %s", date, String.format(format, args)));
+		compLogger.println(String.format(format, args));
+	}
+	
+	public void compLogAuto(String number, boolean forced)
+	{
+		long now = System.currentTimeMillis();
+		if (forced || now > lastCompLogTime + server.autoCompLogTimer)
+		{
+			compLog("[%s...%s]", lastCompLogNumber, number);
+			BFLog.d("Auto comp log for interval [%s...%s]", lastCompLogNumber, number);
+			lastCompLogTime = now;
+			lastCompLogNumber = number;
+		}
 	}
 	
 	@Override

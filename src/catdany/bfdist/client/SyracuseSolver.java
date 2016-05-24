@@ -2,6 +2,8 @@ package catdany.bfdist.client;
 
 import java.math.BigInteger;
 
+import catdany.bfdist.log.BFLog;
+
 public class SyracuseSolver implements Runnable
 {
 	private static final BigInteger bigZero = new BigInteger("0");
@@ -41,7 +43,7 @@ public class SyracuseSolver implements Runnable
 	{
 		while (initial.compareTo(max) == -1)
 		{
-			startTime = System.currentTimeMillis();
+			startTime = lastReportedTime = System.currentTimeMillis();
 			recursive();
 			reportDone();
 			initial = current = initial.add(bigOne);
@@ -61,9 +63,9 @@ public class SyracuseSolver implements Runnable
 	/**
 	 * Report to server time elapsed for the current number in process (happens automatically every {@link #autoReportTimer} ms
 	 */
-	public void reportTime()
+	public void reportTime(long now)
 	{
-		long now = System.currentTimeMillis();
+		BFLog.d("last: %s | autoreporttimer: %s | now: %s", lastReportedTime, autoReportTimer, now);
 		com.sendToServer(String.format("SPTIME %s %s", now - startTime, initial));
 	}
 	
@@ -75,9 +77,9 @@ public class SyracuseSolver implements Runnable
 		if (!current.equals(bigOne))
 		{
 			long now = System.currentTimeMillis();
-			if (now - lastReportedTime > autoReportTimer)
+			if (now > lastReportedTime + autoReportTimer)
 			{
-				reportTime();
+				reportTime(now);
 				lastReportedTime = now;
 			}
 			if (current.mod(bigTwo).equals(bigZero))

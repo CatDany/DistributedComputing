@@ -49,7 +49,7 @@ public class ServerCom implements Runnable
 			String read;
 			while ((read = in.readLine()) != null)
 			{
-				BFLog.d("Received message from server: %s", read);
+				//FIXME:BFLog.d("Received message from server: %s", read);
 				if (read.startsWith("SPSTART"))
 				{
 					if (syracuseThread != null)
@@ -63,6 +63,7 @@ public class ServerCom implements Runnable
 					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), start, end, this);
 					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
 					syracuseThread.start();
+					BFLog.i("Started Solver on an interval [%s...%s]", split[2], end);
 				}
 				else if (read.equals("SHUTDOWN"))
 				{

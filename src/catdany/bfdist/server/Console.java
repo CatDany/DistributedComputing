@@ -1,9 +1,11 @@
 package catdany.bfdist.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.nio.file.Files;
 
 import catdany.bfdist.log.BFLog;
 
@@ -34,11 +36,32 @@ public class Console implements Runnable
 					String[] split = read.split(" ");
 					BigInteger beginAt = new BigInteger(split[1]);
 					server.clientBuffer = new BigInteger(split[2]);
-					long autoReportInterval = Long.parseLong(split[3]);
-					server.autoReportTimer = autoReportInterval;
-					BFLog.i("Set auto-report interval to %s ms", autoReportInterval);
+					long autoReportTimer = Long.parseLong(split[3]);
+					long autoCompLogTimer = Long.parseLong(split[4]);
+					server.autoReportTimer = autoReportTimer;
+					BFLog.i("Set auto-report time to %s ms", autoReportTimer);
+					server.autoCompLogTimer = autoCompLogTimer;
+					BFLog.i("Set auto-complog time to %s ms", autoCompLogTimer);
 					server.freeInterval = beginAt;
 					BFLog.i("Free interval is set to [%s...inf]", server.freeInterval);
+					File currentDir = new File(".");
+					for (File i : currentDir.listFiles())
+					{
+						String filename = i.getName();
+						if (filename.startsWith("INTERVAL_") && filename.length() == "INTERVAL_2bb20e1c-110c-39dc-9769-c5a151430a06.txt".length())
+						{
+							try
+							{
+								Files.delete(i.toPath());
+								BFLog.d("Client interval file deleted: %s", filename);
+							}
+							catch (Exception t)
+							{
+								BFLog.w("Couldn't delete client interval file: %s", filename);
+								BFLog.t(t);
+							}
+						}
+					}
 					for (ClientHandler i : server.getClients())
 					{
 						server.allocate(server.clientBuffer, i);
@@ -66,7 +89,7 @@ public class Console implements Runnable
 				{
 					BFLog.w("Unknown command.");
 					BFLog.i("Command list:");
-					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportInterval:long]");
+					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportTimer:long] [autoCompLogTimer:long]");
 					BFLog.i("-- Save progress and close server: x");
 				}
 			}

@@ -3,6 +3,7 @@ package catdany.bfdist.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -34,6 +35,60 @@ public class Console implements Runnable
 				String read = in.readLine();
 				BFLog.logToFile("[SYSIN] " + read);
 				int maxBytes = 8192;
+				if (read.startsWith("start"))
+				{
+					String[] split = read.split(" ");
+					BigInteger beginAt = new BigInteger(split[1]);
+					server.clientBuffer = new BigInteger(split[2]);
+					long autoReportInterval = Long.parseLong(split[3]);
+					server.autoReportInterval = autoReportInterval;
+					BFLog.i("Set auto-report interval to %s ms", autoReportInterval);
+					server.freeInterval = beginAt;
+					BFLog.i("Unallocated interval is set to [%s...inf]", server.freeInterval);
+					for (ClientHandler i : server.getClients())
+					{
+						server.allocate(server.clientBuffer, i);
+					}
+					server.showContinueWarning = false;
+				}
+				else if (read.startsWith("continue"))
+				{
+					if (server.showContinueWarning && !read.startsWith("continuex"))
+					{
+						BFLog.w("Attempted to continue allocated intervals, but one or more of the intervals was not restored successfully. If you wish to forcefully proceed, use 'continuex [autoReportInterval:long]'");
+					}
+					else
+					{
+						String[] split = read.split(" ");
+						server.autoReportInterval = Long.parseLong(split[1]);
+						for (ClientHandler i : server.getClients())
+						{
+							server.allocateContinue(i);
+						}
+					}
+				}
+				else if (read.equals("x"))
+				{
+					BFLog.i("Console requested save-and-exit.");
+					if (server.shutdown)
+					{
+						BFLog.w("Server is already in process of shutting down.");
+					}
+					else
+					{
+						server.saveServerIntervals();
+						server.shutdown = true;
+						server.sendToAll("SHUTDOWN");
+					}
+				}
+				else
+				{
+					BFLog.w("Unknown command.");
+					BFLog.w("Calculate new: start [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportInterval:long]");
+					BFLog.w("Continue calculation: continue [autoReportInterval:long]");
+					BFLog.w("Save progress and close server: x");
+				}
+				//FIXME:Remove old code
 				if (read.startsWith("rng"))
 				{
 					if (read.length() > 4 && BFHelper.isInteger(read.substring(4)) && Integer.parseInt(read.substring(4)) > 0 && Integer.parseInt(read.substring(4)) <= maxBytes)
@@ -91,6 +146,11 @@ public class Console implements Runnable
 			{
 				BFLog.t(t);
 				BFLog.e("Unable to read from console.");
+			}
+			catch (Exception t)
+			{
+				BFLog.t(t);
+				BFLog.e("Internal console error.");
 			}
 		}
 	}

@@ -3,6 +3,7 @@ package catdany.bfdist.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.UUID;
 
 import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
@@ -20,8 +21,11 @@ public class BFClient
 	 */
 	private Socket socket;
 	
-	public BFClient(InetAddress ip, int port)
+	public final UUID id;
+	
+	public BFClient(UUID id, InetAddress ip, int port)
 	{
+		this.id = id;
 		connect(ip, port);
 	}
 	
@@ -32,9 +36,9 @@ public class BFClient
 	 * @param port
 	 * @see BFClient#getClient()
 	 */
-	public static void instantiate(InetAddress ip, int port)
+	public static void instantiate(UUID id, InetAddress ip, int port)
 	{
-		instance = new BFClient(ip, port);
+		instance = new BFClient(id, ip, port);
 	}
 	
 	/**
@@ -49,6 +53,7 @@ public class BFClient
 			socket = new Socket(ip, port);
 			this.com = new ServerCom(socket);
 			BFLog.i("Connected to server: %s", socket.getRemoteSocketAddress().toString());
+			com.sendToServer("UUID " + id);
 		}
 		catch (IOException t)
 		{

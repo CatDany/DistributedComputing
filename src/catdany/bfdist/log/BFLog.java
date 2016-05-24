@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Date;
 
 import catdany.bfdist.BFHelper;
 
@@ -137,11 +138,10 @@ public class BFLog
 	/**
 	 * Logging
 	 * @param level Logging level
-	 * @param format Message format
-	 * @param args Arguments for formatting
+	 * @param msg Message to log
 	 * @see String#format(String, Object...)
 	 */
-	public static void log(Level level, String format, Object... args)
+	public static void log(Level level, String msg)
 	{
 		if (logLevel == null)
 		{
@@ -150,13 +150,24 @@ public class BFLog
 		else if (level.value <= logLevel.value)
 		{
 			String s = String.format("[Log] [%s] [%s] [%s] %s",
-					BFHelper.dateFormatVersion.format(Calendar.getInstance().getTime()),
+					BFHelper.dateFormatVersion.format(new Date()),
 					Thread.currentThread().getName(),
 					level,
-					String.format(format, args));
+					msg);
 			System.out.println(s);
 			logToFile(s);
 		}
+	}
+	
+	/**
+	 * Logging
+	 * @param level Logging level
+	 * @param format Message format
+	 * @param args {@link String#format(String, Object...)} arguments
+	 */
+	public static void log(Level level, String format, Object... args)
+	{
+		log(level, String.format(format, args));
 	}
 	
 	/**

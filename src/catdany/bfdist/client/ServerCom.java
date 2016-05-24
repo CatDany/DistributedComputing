@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 
 import javax.xml.bind.DatatypeConverter;
@@ -19,6 +20,9 @@ public class ServerCom implements Runnable
 	private Thread comThread;
 	private BufferedReader in;
 	private PrintWriter out;
+	
+	private Thread syracuseThread;
+	private SyracuseSolver syracuseSolver;
 	
 	public ServerCom(Socket socket)
 	{
@@ -46,12 +50,27 @@ public class ServerCom implements Runnable
 			while ((read = in.readLine()) != null)
 			{
 				BFLog.d("Received message from server: %s", read);
-				if (read.startsWith("RANDOM") && BFHelper.isInteger(read.substring(7)))
+				if (read.startsWith("SPSTART"))
 				{
-					RNG rng = new RNG();
-					rng.start(Integer.parseInt(read.substring(7)));
+					if (syracuseThread != null)
+					{
+						syracuseThread.interrupt();
+						syracuseSolver = null;
+					}
+					String[] split = read.split(" ");
+					BigInteger start = new BigInteger(split[2]);
+					BigInteger end = new BigInteger(split[2]).add(new BigInteger(split[3]));
+					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), start, end, this);
+					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
+					syracuseThread.start();
+				}
+				else if (read.equals("SHUTDOWN"))
+				{
+					BFLog.i("Server has been stopped.");
+					break;
 				}
 			}
+			throw new RuntimeException("readLine() = null");
 		}
 		catch (Exception t)
 		{

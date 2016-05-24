@@ -1,11 +1,17 @@
 package catdany.bfdist.server;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 
 import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
@@ -20,6 +26,13 @@ public class BFServer implements Runnable
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private Thread serverThread;
 	public ByteBuffer rngData;
+	
+	public long autoReportInterval;
+	public BigInteger freeInterval;
+	public BigInteger clientBuffer;
+	
+	public boolean shutdown = false;
+	public boolean showContinueWarning = false;
 	
 	private BFServer(int port)
 	{
@@ -39,6 +52,7 @@ public class BFServer implements Runnable
 			BFLog.t(t);
 			BFLog.exit("Port %s is out of range (0-65535).", port);
 		}
+		restoreServerIntervals();
 		this.serverThread = new Thread(this, "Server");
 		serverThread.start();
 	}
@@ -64,10 +78,9 @@ public class BFServer implements Runnable
 			try
 			{
 				Socket connectedClient = socket.accept();
-				int id = clients.size();
-				ClientHandler ch = new ClientHandler(id, connectedClient, this);
+				ClientHandler ch = new ClientHandler(connectedClient, this);
 				clients.add(ch);
-				BFLog.i("Client connected (id: %s, from: %s)", id, connectedClient.getRemoteSocketAddress().toString());
+				BFLog.i("Client connected (from: %s)", connectedClient.getRemoteSocketAddress().toString());
 			}
 			catch (IOException t)
 			{
@@ -145,5 +158,70 @@ public class BFServer implements Runnable
 	protected ArrayList<ClientHandler> getClients()
 	{
 		return clients;
+	}
+	
+	/**
+	 * Allocate an interval for a client to calculate
+	 * @param amount
+	 * @param client
+	 */
+	public void allocate(BigInteger amount, ClientHandler client)
+	{
+		client.current = amount.toString();
+		client.send("SPSTART " + autoReportInterval + " " + freeInterval.toString() + " " + client.current);
+		client.max = freeInterval.add(amount).toString();
+		BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
+		freeInterval = freeInterval.add(amount);
+		BFLog.i("Free interval is set to [%s...inf]", freeInterval);
+	}
+	
+	/**
+	 * Allocate the interval from save
+	 * @param client
+	 */
+	public void allocateContinue(ClientHandler client)
+	{
+		BigInteger current = new BigInteger(client.current);
+		BigInteger max = new BigInteger(client.max);
+		client.send("SPSTART " + autoReportInterval + " " + client.current + " " + max.subtract(current));
+		BFLog.i("Allocated [%s...%s] to %s", client.current, client.max, client);
+		BFLog.i("Free interval is set to [%s...inf]", freeInterval);
+	}
+	
+	void saveServerIntervals()
+	{
+		try (PrintWriter p = new PrintWriter(new File("INTERVAL_SERVER.txt")))
+		{
+			String freeInterval = this.freeInterval.toString();
+			String clientBuffer = this.clientBuffer.toString();
+			p.println(freeInterval);
+			p.println(clientBuffer);
+			BFLog.i("Saved free interval [%s...inf]", freeInterval);
+			BFLog.i("Saved client buffer (%s)", clientBuffer);
+		}
+		catch (FileNotFoundException t)
+		{
+			BFLog.e("Couldn't save progress.");
+			BFLog.t(t);
+		}
+	}
+	
+	void restoreServerIntervals()
+	{
+		try
+		{
+			List<String> serverIntervalLines = Files.readAllLines(new File("INTERVAL_SERVER.txt").toPath());
+			if (serverIntervalLines.size() >= 2)
+			{
+				freeInterval = new BigInteger(serverIntervalLines.get(0));
+				clientBuffer = new BigInteger(serverIntervalLines.get(1));
+			}
+		}
+		catch (IOException t)
+		{
+			BFLog.e("Unable to restore free interval.");
+			BFLog.t(t);
+			showContinueWarning = true;
+		}
 	}
 }

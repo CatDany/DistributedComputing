@@ -1,8 +1,14 @@
 package catdany.bfdist;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.UUID;
 
 import catdany.bfdist.client.BFClient;
 import catdany.bfdist.log.BFLog;
@@ -57,9 +63,41 @@ public class Main
 		{
 			side = Side.CLIENT;
 			port = Integer.parseInt(args[1]);
+			UUID id = UUID.randomUUID();
+			File uuidFile = new File("uuid.txt");
+			if (uuidFile.exists())
+			{
+				try (FileInputStream uuidReader = new FileInputStream(uuidFile))
+				{
+					byte[] uuidBytes = new byte[16];
+					uuidReader.read(uuidBytes);
+					id = UUID.nameUUIDFromBytes(uuidBytes);
+				}
+				catch (IOException t)
+				{
+					BFLog.e("Couldn't read UUID from file. Generating a new one.");
+					BFLog.t(t);
+				}
+			}
+			else
+			{
+				try (FileOutputStream uuidWriter = new FileOutputStream(uuidFile))
+				{
+					ByteBuffer buf = ByteBuffer.allocate(16);
+					buf.putLong(id.getMostSignificantBits());
+					buf.putLong(id.getLeastSignificantBits());
+					uuidWriter.write(buf.array());
+				}
+				catch (IOException t)
+				{
+					BFLog.e("Couldn't write UUID to file. That will lead to its regeneration next time the app runs!");
+					BFLog.t(t);
+				}
+			}
+			BFLog.i("Client UUID is %s", id);
 			try
 			{
-				BFClient.instantiate(InetAddress.getByName(args[2]), port);
+				BFClient.instantiate(id, InetAddress.getByName(args[2]), port);
 			}
 			catch (UnknownHostException t)
 			{

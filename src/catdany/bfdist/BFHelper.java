@@ -6,9 +6,22 @@ import java.text.SimpleDateFormat;
 
 public class BFHelper
 {
+	/**
+	 * dd.MM.yyyy HH:mm
+	 */
 	public static final DateFormat dateFormatVersion = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+	/**
+	 * yyyy-MM-dd HH:mm:ss
+	 */
 	public static final DateFormat dateFormatLog = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	/**
+	 * yyyy-MM-dd-HH-mm-ss
+	 */
 	public static final DateFormat dateFormatFile = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+	/**
+	 * HH 'h' mm 'm' ss 's' S 'ms'
+	 */
+	public static final DateFormat dateFormatTime = new SimpleDateFormat("HH 'h' mm 'm' ss 's' S 'ms'");
 	
 	public static final Charset charset = Charset.forName("ISO-8859-15");
 	

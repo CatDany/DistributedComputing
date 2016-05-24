@@ -29,8 +29,8 @@ public class ClientHandler implements Runnable
 	
 	public PrintWriter compLogger;
 
-	public String current;
-	public String max;
+	public String current = null;
+	public String max = null;
 	
 	public ClientHandler(Socket connectedClient, BFServer server)
 	{
@@ -66,6 +66,17 @@ public class ClientHandler implements Runnable
 					handlerThread.setName(handlerThread.getName() + "-" + id);
 					restoreClientInterval();
 					compLogger = new PrintWriter(new FileWriter("COMPLOG_" + id + ".txt", true), true);
+					if (server.freeInterval != null && server.clientBuffer != null)
+					{
+						if (current != null && max != null)
+						{
+							server.allocateContinue(this);
+						}
+						else
+						{
+							server.allocate(server.clientBuffer, this);
+						}
+					}
 				}
 				else if (read.startsWith("SPCOMPLETE"))
 				{
@@ -102,6 +113,11 @@ public class ClientHandler implements Runnable
 			BFLog.d("Closed compLogger stream.");
 		}
 		saveClientIntervals();
+		server.kick(this);
+		if (server.shutdown && server.getClients().size() == 0)
+		{
+			BFLog.exit("Console requested save-and-exit.");
+		}
 	}
 	
 	/**
@@ -138,11 +154,6 @@ public class ClientHandler implements Runnable
 		{
 			BFLog.e("Couldn't save progress.");
 			BFLog.t(t);
-		}
-		server.kick(this);
-		if (server.shutdown && server.getClients().size() == 0)
-		{
-			BFLog.exit("Console requested save-and-exit.");
 		}
 	}
 	

@@ -6,7 +6,7 @@ where each one calculates its own part of the whole task, the work is going to b
 This is exactly what this code is supposed to do. But because it's a school project I don't intend to make it flexible (maybe API in the future)
 
 ### How do I run it?
-Get the code and compile it or PM me and I'll send you a compiled jar. Then run with the following arguments:
+Get the code and compile it or [go to my Dropbox](https://drive.google.com/folderview?id=0B1QFErsUwxi9R3F4ZUpOYXo3Z0k&usp=sharing) to get a compiled jar. Then run with the following arguments:
 ```
 Pattern: (client|server) (port) [server-ip] [--enableDebugLogging, optional]
 Client example: client 12345 127.0.0.1 --enableDebugLogging

@@ -64,3 +64,8 @@ $RECYCLE.BIN/
 
 # tmp logs
 logs/
+
+# special DistComp files
+COMPLOG_*
+INTERVAL_*
+uuid.txt

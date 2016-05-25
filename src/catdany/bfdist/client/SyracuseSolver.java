@@ -54,7 +54,7 @@ public class SyracuseSolver implements Runnable
 	/**
 	 * Report to server that a calculation on a particular number is complete and the end result has reached <code>1</code>
 	 */
-	public void reportDone()
+	private void reportDone()
 	{
 		long now = System.currentTimeMillis();
 		com.sendToServer(String.format("SPDONE %s %s", now - startTime, initial));
@@ -63,7 +63,7 @@ public class SyracuseSolver implements Runnable
 	/**
 	 * Report to server time elapsed for the current number in process (happens automatically every {@link #autoReportTimer} ms
 	 */
-	public void reportTime(long now)
+	private void reportTime(long now)
 	{
 		BFLog.d("last: %s | autoreporttimer: %s | now: %s", lastReportedTime, autoReportTimer, now);
 		com.sendToServer(String.format("SPTIME %s %s", now - startTime, initial));
@@ -72,7 +72,7 @@ public class SyracuseSolver implements Runnable
 	/**
 	 * Perform required calculations on a given number
 	 */
-	public void recursive()
+	private void recursive()
 	{
 		if (!current.equals(bigOne))
 		{

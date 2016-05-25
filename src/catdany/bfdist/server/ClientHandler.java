@@ -96,6 +96,7 @@ public class ClientHandler implements Runnable
 				{
 					String[] split = read.split(" ");
 					compLog("%s ms > %s", split[1], split[2]);
+					BFLog.w("Calculation took too long (% ms) >> %s", split[1], split[2]);
 				}
 			}
 			if (!server.shutdown)
@@ -134,12 +135,12 @@ public class ClientHandler implements Runnable
 		BFLog.d("Sent '%s' to client %s", msg, id);
 	}
 	
-	public void compLog(String format, Object... args)
+	private void compLog(String format, Object... args)
 	{
 		compLogger.println(String.format(format, args));
 	}
 	
-	public void compLogAuto(String number, boolean forced)
+	private void compLogAuto(String number, boolean forced)
 	{
 		long now = System.currentTimeMillis();
 		if (forced || now > lastCompLogTime + server.autoCompLogTimer)

@@ -56,7 +56,7 @@ public class BFServer implements Runnable
 			BFLog.exit("Port %s is out of range (0-65535).", port);
 		}
 		restoreServerIntervals();
-		this.serverThread = new Thread(this, "Server");
+		this.serverThread = new Thread(this, "SocketAcceptor");
 		serverThread.start();
 	}
 	
@@ -131,7 +131,7 @@ public class BFServer implements Runnable
 	 * Kick connected client
 	 * @param client
 	 */
-	public void kick(ClientHandler client)
+	public synchronized void kick(ClientHandler client)
 	{
 		if (clients.contains(client))
 		{
@@ -168,7 +168,7 @@ public class BFServer implements Runnable
 	 * @param amount
 	 * @param client
 	 */
-	public void allocate(BigInteger amount, ClientHandler client)
+	public synchronized void allocate(BigInteger amount, ClientHandler client)
 	{
 		client.current = amount.toString();
 		client.lastCompLogNumber = freeInterval.toString();
@@ -184,7 +184,7 @@ public class BFServer implements Runnable
 	 * Allocate the interval from save
 	 * @param client
 	 */
-	public void allocateContinue(ClientHandler client)
+	public synchronized void allocateContinue(ClientHandler client)
 	{
 		BigInteger current = new BigInteger(client.current);
 		BigInteger max = new BigInteger(client.max);

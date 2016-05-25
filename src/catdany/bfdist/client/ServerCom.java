@@ -62,6 +62,7 @@ public class ServerCom implements Runnable
 					BigInteger end = new BigInteger(split[2]).add(new BigInteger(split[3]));
 					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), start, end, this);
 					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
+					syracuseThread.setPriority(9);//XXX: SyracuseSolver Thread Priority
 					syracuseThread.start();
 					BFLog.i("Started Solver on an interval [%s...%s]", split[2], end);
 				}

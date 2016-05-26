@@ -192,7 +192,6 @@ public class BFServer implements Runnable
 		client.lastCompLogTime = System.currentTimeMillis();
 		client.send("SPSTART " + autoReportTimer + " " + client.current + " " + max.subtract(current));
 		BFLog.i("Allocated [%s...%s] to %s", client.current, client.max, client);
-		BFLog.i("Free interval is set to [%s...inf]", freeInterval);
 	}
 	
 	void saveServerIntervals()

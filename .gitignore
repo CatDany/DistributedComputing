@@ -69,3 +69,5 @@ logs/
 COMPLOG_*
 INTERVAL_*
 uuid.txt
+complogarchive/
+email.txt

@@ -9,11 +9,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 
 import catdany.bfdist.BFHelper;
+import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
 
 public class ClientHandler implements Runnable
@@ -34,6 +36,11 @@ public class ClientHandler implements Runnable
 	long lastCompLogTime = 0;
 	String lastCompLogNumber = null;
 	
+	@SuppressWarnings("unused")
+	private ServerPingCheck ping;
+	long lastUpdateTime = System.currentTimeMillis();
+	boolean dropped = false;
+	
 	public ClientHandler(Socket connectedClient, BFServer server)
 	{
 		this.socket = connectedClient;
@@ -44,6 +51,7 @@ public class ClientHandler implements Runnable
 			this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), BFHelper.charset), true);
 			this.handlerThread = new Thread(this, "ClientHandler-" + connectedClient.getRemoteSocketAddress().toString());
 			handlerThread.start();
+			ping = ServerPingCheck.schedule(this, Main.CLIENT_TIMEOUT, Main.CLIENT_TIMEOUT);
 		}
 		catch (Exception t)
 		{
@@ -60,6 +68,7 @@ public class ClientHandler implements Runnable
 			String read;
 			while (!server.shutdown && (read = in.readLine()) != null)
 			{
+				lastUpdateTime = System.currentTimeMillis();
 				BFLog.d("Received message from client: %s", read);
 				if (read.startsWith("UUID"))
 				{
@@ -95,14 +104,20 @@ public class ClientHandler implements Runnable
 				else if (read.startsWith("SPTIME"))
 				{
 					String[] split = read.split(" ");
-					compLog("%s ms > %s", split[1], split[2]);
+					//XXX: SPTIME complog? compLog("%s ms>%s", split[1], split[2]);
 					BFLog.w("Calculation took too long (% ms) >> %s", split[1], split[2]);
 				}
+				else if (read.startsWith("SPMSR")) // max steps reached
+				{
+					String number = read.substring("SPMSR ".length());
+					compLog("MSR %s", number);
+					BFLog.w("Calculation took %s steps >> %s", server.maxSteps, number);
+				}
 			}
-			if (!server.shutdown)
-			{
+			if (dropped)
+				throw new SocketTimeoutException("Too long without response.");
+			else if (!server.shutdown)
 				throw new RuntimeException("readLine() = null");
-			}
 		}
 		catch (Exception t)
 		{
@@ -145,8 +160,8 @@ public class ClientHandler implements Runnable
 		long now = System.currentTimeMillis();
 		if (forced || now > lastCompLogTime + server.autoCompLogTimer)
 		{
-			compLog("[%s...%s]", lastCompLogNumber, number);
-			BFLog.d("Auto comp log for interval [%s...%s]", lastCompLogNumber, number);
+			compLog("%s;%s", lastCompLogNumber, number);
+			BFLog.d("Comp log for interval [%s...%s]", lastCompLogNumber, number);
 			lastCompLogTime = now;
 			lastCompLogNumber = number;
 		}

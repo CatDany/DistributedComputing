@@ -26,13 +26,23 @@ public class SyracuseSolver implements Runnable
 	 */
 	private long lastReportedTime = System.currentTimeMillis();
 	/**
-	 * Automatically report that one number is taking too long to process every N ms
+	 * Steps this current number took to process
+	 */
+	private int steps = 0;
+	
+	/**
+	 * Automatically report that one number is taking too long to process every <code>N</code> ms
 	 */
 	public final long autoReportTimer;
+	/**
+	 * If one number takes <code>N</code> steps to calculate, report and proceed to the next one 
+	 */
+	private final int maxSteps;
 	
-	public SyracuseSolver(long autoReportTimer, BigInteger initial, BigInteger max, ServerCom com)
+	public SyracuseSolver(long autoReportTimer, int maxSteps, BigInteger initial, BigInteger max, ServerCom com)
 	{
 		this.autoReportTimer = autoReportTimer;
+		this.maxSteps = maxSteps;
 		this.initial = current = initial;
 		this.max = max;
 		this.com = com;
@@ -41,9 +51,10 @@ public class SyracuseSolver implements Runnable
 	@Override
 	public void run()
 	{
-		while (initial.compareTo(max) == -1)
+		while (initial.compareTo(max) == -1) // initial < max
 		{
 			startTime = lastReportedTime = System.currentTimeMillis();
+			steps = 0;
 			recursive();
 			reportDone();
 			initial = current = initial.add(bigOne);
@@ -70,6 +81,14 @@ public class SyracuseSolver implements Runnable
 	}
 	
 	/**
+	 * Report to server that one number took {@link #maxSteps} steps to calculate
+	 */
+	private void reportMaxStepsReached()
+	{
+		com.sendToServer(String.format("SPMSR %s", initial));
+	}
+	
+	/**
 	 * Perform required calculations on a given number
 	 */
 	private void recursive()
@@ -82,6 +101,11 @@ public class SyracuseSolver implements Runnable
 				reportTime(now);
 				lastReportedTime = now;
 			}
+			if (steps > maxSteps)
+			{
+				reportMaxStepsReached();
+				return;
+			}
 			if (current.mod(bigTwo).equals(bigZero))
 			{
 				current = current.divide(bigTwo); // 0.5n
@@ -90,6 +114,8 @@ public class SyracuseSolver implements Runnable
 			{
 				current = current.multiply(bigThree).add(bigOne); // 3n+1
 			}
+			steps++;
+			recursive();
 		}
 	}
 }

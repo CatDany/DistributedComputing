@@ -1,5 +1,7 @@
 package catdany.bfdist;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -72,5 +74,19 @@ public class BFHelper
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Write exception to string<br>
+	 * Resulting contains full class name of the exception, its message and stack trace. 
+	 * @param t
+	 * @return
+	 */
+	public static String writeException(Exception t)
+	{
+		StringWriter s = new StringWriter();
+		PrintWriter w = new PrintWriter(s);
+		t.printStackTrace(w);
+		return s.toString();
 	}
 }

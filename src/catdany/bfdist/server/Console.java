@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 
 import catdany.bfdist.log.BFLog;
+import catdany.bfdist.server.report.Reporter;
 
 public class Console implements Runnable
 {
@@ -31,19 +33,24 @@ public class Console implements Runnable
 			{
 				String read = in.readLine();
 				BFLog.logToFile("[SYSIN] " + read);
-				if (read.startsWith("init"))
+				if (read.startsWith("init "))
 				{
 					String[] split = read.split(" ");
 					BigInteger beginAt = new BigInteger(split[1]);
 					server.clientBuffer = new BigInteger(split[2]);
 					long autoReportTimer = Long.parseLong(split[3]);
 					long autoCompLogTimer = Long.parseLong(split[4]);
+					long autoEmailReportTimer = Long.parseLong(split[5]);
+					int maxSteps = Integer.parseInt(split[6]);
 					server.autoReportTimer = autoReportTimer;
 					BFLog.i("Set auto-report time to %s ms", autoReportTimer);
 					server.autoCompLogTimer = autoCompLogTimer;
 					BFLog.i("Set auto-complog time to %s ms", autoCompLogTimer);
 					server.freeInterval = beginAt;
 					BFLog.i("Free interval is set to [%s...inf]", server.freeInterval);
+					server.scheduledEmailReporter = Reporter.startOnSchedule(autoEmailReportTimer, TimeUnit.MINUTES);
+					BFLog.i("Scheduled auto e-mail report in %s %s", autoEmailReportTimer, TimeUnit.MINUTES);
+					server.maxSteps = maxSteps;
 					File currentDir = new File(".");
 					for (File i : currentDir.listFiles())
 					{
@@ -89,7 +96,7 @@ public class Console implements Runnable
 				{
 					BFLog.w("Unknown command.");
 					BFLog.i("Command list:");
-					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportTimer:long] [autoCompLogTimer:long]");
+					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportTimer:long] [autoCompLogTimer:long] [emailReportTimerMinutes:int] [maxSteps:int]");
 					BFLog.i("-- Save progress and close server: x");
 				}
 			}

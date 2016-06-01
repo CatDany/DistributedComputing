@@ -17,6 +17,15 @@ import catdany.bfdist.server.BFServer;
 public class Main
 {
 	/**
+	 * Client will send a ping to the server every <code>N</code> milliseconds
+	 */
+	public static final long CLIENT_PING_TIME = 5000;
+	/**
+	 * Server will drop a client if no messages were received in the last <code>N</code> milliseconds
+	 */
+	public static final long CLIENT_TIMEOUT   = 10000;
+	
+	/**
 	 * Arguments usage (used for error messages)
 	 */
 	private static final String ARGS_USAGE = "(client|server) (port) [server-ip]";
@@ -45,7 +54,7 @@ public class Main
 	 * main method
 	 * @param args See {@link #ARGS_USAGE}
 	 */
-	public static void main(String[] args)
+	public static void main(String[] args) throws Exception
 	{
 		BFLog.init(BFHelper.arrayContains(args, "--enableDebugLogging", false) ? BFLog.Level.DEBUG : BFLog.Level.INFO);
 		BFLog.i("You're running DistComp by CatDany. Current version is %s (%s)", VERSION_NAME, getBuildDate());

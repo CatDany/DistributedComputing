@@ -8,10 +8,10 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
@@ -25,12 +25,13 @@ public class BFServer implements Runnable
 	private Console console = new Console(this);
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private Thread serverThread;
-	public ByteBuffer rngData;
+	public ScheduledFuture<?> scheduledEmailReporter;
 
 	/**
 	 * Write to compLog every N ms
 	 */
 	long autoCompLogTimer = 0;
+	int maxSteps = 0;
 	public long autoReportTimer;
 	public BigInteger freeInterval;
 	public BigInteger clientBuffer;
@@ -158,7 +159,7 @@ public class BFServer implements Runnable
 	 * <b>Warning:</b> use {@link ArrayList#clone()} you intend to modify it
 	 * @return
 	 */
-	protected ArrayList<ClientHandler> getClients()
+	public ArrayList<ClientHandler> getClients()
 	{
 		return clients;
 	}
@@ -173,7 +174,7 @@ public class BFServer implements Runnable
 		client.current = amount.toString();
 		client.lastCompLogNumber = freeInterval.toString();
 		client.lastCompLogTime = System.currentTimeMillis();
-		client.send("SPSTART " + autoReportTimer + " " + freeInterval.toString() + " " + client.current);
+		client.send("SPSTART " + autoReportTimer + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
 		client.max = freeInterval.add(amount).toString();
 		BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
 		freeInterval = freeInterval.add(amount);
@@ -190,7 +191,7 @@ public class BFServer implements Runnable
 		BigInteger max = new BigInteger(client.max);
 		client.lastCompLogNumber = client.current;
 		client.lastCompLogTime = System.currentTimeMillis();
-		client.send("SPSTART " + autoReportTimer + " " + client.current + " " + max.subtract(current));
+		client.send("SPSTART " + autoReportTimer + " " + maxSteps + " " + client.current + " " + max.subtract(current));
 		BFLog.i("Allocated [%s...%s] to %s", client.current, client.max, client);
 	}
 	

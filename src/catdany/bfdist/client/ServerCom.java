@@ -11,6 +11,7 @@ import java.net.Socket;
 import javax.xml.bind.DatatypeConverter;
 
 import catdany.bfdist.BFHelper;
+import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
 
 public class ServerCom implements Runnable
@@ -24,6 +25,9 @@ public class ServerCom implements Runnable
 	private Thread syracuseThread;
 	private SyracuseSolver syracuseSolver;
 	
+	@SuppressWarnings("unused")
+	private PingTimer ping;
+	
 	public ServerCom(Socket socket)
 	{
 		this.socket = socket;
@@ -33,6 +37,7 @@ public class ServerCom implements Runnable
 			this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), BFHelper.charset), true);
 			this.comThread = new Thread(this, "Client-ServerCom");
 			comThread.start();
+			ping = new PingTimer(Main.CLIENT_PING_TIME, this);
 		}
 		catch (IOException t)
 		{
@@ -58,13 +63,13 @@ public class ServerCom implements Runnable
 						syracuseSolver = null;
 					}
 					String[] split = read.split(" ");
-					BigInteger start = new BigInteger(split[2]);
-					BigInteger end = new BigInteger(split[2]).add(new BigInteger(split[3]));
-					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), start, end, this);
+					BigInteger start = new BigInteger(split[3]);
+					BigInteger end = new BigInteger(split[3]).add(new BigInteger(split[4]));
+					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), Integer.parseInt(split[2]), start, end, this);
 					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
 					syracuseThread.setPriority(9);//XXX: SyracuseSolver Thread Priority
 					syracuseThread.start();
-					BFLog.i("Started Solver on an interval [%s...%s]", split[2], end);
+					BFLog.i("Started Solver on an interval [%s...%s]", split[3], end);
 				}
 				else if (read.equals("SHUTDOWN"))
 				{
@@ -95,6 +100,7 @@ public class ServerCom implements Runnable
 	 * Send a byte array to server (temporarily sends hexadecimal encoded byte-array)
 	 * @param bytes
 	 */
+	@Deprecated
 	public void sendToServer(byte[] bytes)
 	{
 		out.println(new String(bytes, BFHelper.charset));

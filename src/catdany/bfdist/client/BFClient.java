@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
 
-public class BFClient
+public class BFClient implements Runnable
 {
 	private static BFClient instance;
 	
@@ -25,12 +28,30 @@ public class BFClient
 	public final InetAddress ip;
 	public final int port;
 	
+	public static ScheduledExecutorService executorConnect;
+	
 	public BFClient(UUID id, InetAddress ip, int port)
 	{
 		this.id = id;
 		this.ip = ip;
 		this.port = port;
-		connect(ip, port);
+		executorConnect = Executors.newSingleThreadScheduledExecutor();
+		executorConnect.schedule(this, 0, TimeUnit.MILLISECONDS);
+	}
+	
+	@Override
+	public void run()
+	{
+		try
+		{
+			connect(ip, port);
+		}
+		catch (IOException t)
+		{
+			BFLog.t(t);
+			BFLog.e("Unable to create client socket on client-side.");
+			executorConnect.schedule(this, 2000, TimeUnit.MILLISECONDS);
+		}
 	}
 	
 	/**
@@ -50,21 +71,12 @@ public class BFClient
 	 * @param ip
 	 * @param port
 	 */
-	public void connect(InetAddress ip, int port)
+	public void connect(InetAddress ip, int port) throws IOException
 	{
-		try
-		{
-			socket = new Socket(ip, port);
-			this.com = new ServerCom(socket);
-			BFLog.i("Connected to server: %s", socket.getRemoteSocketAddress().toString());
-			com.sendToServer("UUID " + id);
-		}
-		catch (IOException t)
-		{
-			BFLog.t(t);
-			BFLog.e("Unable to create client socket on client-side.");
-			connect(ip, port);
-		}
+		socket = new Socket(ip, port);
+		this.com = new ServerCom(socket);
+		BFLog.i("Connected to server: %s", socket.getRemoteSocketAddress().toString());
+		com.sendToServer("UUID " + id);
 	}
 	
 	/**

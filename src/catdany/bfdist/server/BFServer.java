@@ -12,9 +12,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import catdany.bfdist.Main;
 import catdany.bfdist.log.BFLog;
+import catdany.bfdist.server.report.Reporter;
 
 public class BFServer implements Runnable
 {
@@ -58,6 +60,7 @@ public class BFServer implements Runnable
 			BFLog.exit("Port %s is out of range (0-65535).", port);
 		}
 		restoreServerIntervals();
+		scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 		this.serverThread = new Thread(this, "SocketAcceptor");
 		serverThread.start();
 	}

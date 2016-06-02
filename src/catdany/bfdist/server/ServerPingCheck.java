@@ -9,15 +9,15 @@ public class ServerPingCheck implements Runnable
 { 
 	public final ClientHandler client;
 	public final long timeout;
-	public final ScheduledExecutorService executor;
 	
+	public ScheduledExecutorService executor;
 	public ScheduledFuture<?> future;
 	
 	public ServerPingCheck(ClientHandler client, long timeout)
 	{
 		this.client = client;
 		this.timeout = timeout;
-		this.executor = Executors.newScheduledThreadPool(1);
+		this.executor = Executors.newSingleThreadScheduledExecutor();
 	}
 	
 	/**

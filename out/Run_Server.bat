@@ -1,5 +1,5 @@
 @echo off
 echo Running as SERVER
 set /p BFport="Server port: "
-java -jar "bfdist_2.0-a3.jar" server %BFport%
+java -jar "bfdist_2.1-a4.jar" server %BFport%
 pause

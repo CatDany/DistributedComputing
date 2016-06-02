@@ -37,7 +37,7 @@ public class SyracuseSolver implements Runnable
 	/**
 	 * If one number takes <code>N</code> steps to calculate, report and proceed to the next one 
 	 */
-	private final int maxSteps;
+	public final int maxSteps;
 	
 	public SyracuseSolver(long autoReportTimer, int maxSteps, BigInteger initial, BigInteger max, ServerCom com)
 	{
@@ -59,7 +59,7 @@ public class SyracuseSolver implements Runnable
 			reportDone();
 			initial = current = initial.add(bigOne);
 		}
-		com.sendToServer("SPCOMPLETE");
+		sendToServer("SPCOMPLETE");
 	}
 	
 	/**
@@ -68,7 +68,7 @@ public class SyracuseSolver implements Runnable
 	private void reportDone()
 	{
 		long now = System.currentTimeMillis();
-		com.sendToServer(String.format("SPDONE %s %s", now - startTime, initial));
+		sendToServer("SPDONE " + (now - startTime) + " " + initial);
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class SyracuseSolver implements Runnable
 	private void reportTime(long now)
 	{
 		BFLog.d("last: %s | autoreporttimer: %s | now: %s", lastReportedTime, autoReportTimer, now);
-		com.sendToServer(String.format("SPTIME %s %s", now - startTime, initial));
+		sendToServer("SPTIME " + (now - startTime) + " " + initial);
 	}
 	
 	/**
@@ -85,7 +85,16 @@ public class SyracuseSolver implements Runnable
 	 */
 	private void reportMaxStepsReached()
 	{
-		com.sendToServer(String.format("SPMSR %s", initial));
+		sendToServer("SPMSR " + initial);
+	}
+	
+	/**
+	 * Send message to the server
+	 * @param s
+	 */
+	private void sendToServer(String s)
+	{
+		com.sendToServer(s);
 	}
 	
 	/**

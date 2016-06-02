@@ -150,7 +150,7 @@ public class BFLog
 		else if (level.value <= logLevel.value)
 		{
 			String s = String.format("[Log] [%s] [%s] [%s] %s",
-					BFHelper.dateFormatVersion.format(new Date()),
+					BFHelper.dateFormatLog.format(new Date()),
 					Thread.currentThread().getName(),
 					level,
 					msg);

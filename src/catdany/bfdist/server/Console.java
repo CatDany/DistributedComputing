@@ -48,7 +48,8 @@ public class Console implements Runnable
 					BFLog.i("Set auto-complog time to %s ms", autoCompLogTimer);
 					server.freeInterval = beginAt;
 					BFLog.i("Free interval is set to [%s...inf]", server.freeInterval);
-					server.scheduledEmailReporter = Reporter.startOnSchedule(autoEmailReportTimer, TimeUnit.MINUTES);
+					server.autoEmailReportTimer = autoEmailReportTimer;
+					server.scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 					BFLog.i("Scheduled auto e-mail report in %s %s", autoEmailReportTimer, TimeUnit.MINUTES);
 					server.maxSteps = maxSteps;
 					File currentDir = new File(".");

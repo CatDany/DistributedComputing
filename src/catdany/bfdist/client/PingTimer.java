@@ -1,38 +1,34 @@
 package catdany.bfdist.client;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class PingTimer implements Runnable
 {
-	public final Thread threadPing;
-	private long pingTime;
-	private ServerCom com;
+	public final ServerCom com;
+	public final ScheduledExecutorService executor;
 	
-	private long lastPingTime = System.currentTimeMillis();
+	public ScheduledFuture<?> future;
 	
 	public PingTimer(long pingTime, ServerCom com)
 	{
-		this.pingTime = pingTime;
 		this.com = com;
-		this.threadPing = new Thread(this, "PingTimer");
-		threadPing.start();
+		this.executor = Executors.newScheduledThreadPool(1);
+		this.future = executor.scheduleAtFixedRate(this, pingTime, pingTime, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override
 	public void run()
 	{
-		while (true)
+		if (BFClient.getClient().getServerCom() == com)
 		{
-			long now = System.currentTimeMillis();
-			if (now > lastPingTime + pingTime)
-			{
-				com.sendToServer("");
-				lastPingTime = now;
-			}
+			com.sendToServer("");
 		}
-	}
-	
-	public void setPingTime(long pingTime)
-	{
-		this.pingTime = pingTime;
+		else
+		{
+			future.cancel(false);
+		}
 	}
 }

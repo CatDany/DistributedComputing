@@ -12,6 +12,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import catdany.bfdist.BFHelper;
 import catdany.bfdist.Main;
+import catdany.bfdist.log.BFException;
 import catdany.bfdist.log.BFLog;
 
 public class ServerCom implements Runnable
@@ -67,23 +68,34 @@ public class ServerCom implements Runnable
 					BigInteger end = new BigInteger(split[3]).add(new BigInteger(split[4]));
 					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), Integer.parseInt(split[2]), start, end, this);
 					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
-					syracuseThread.setPriority(9);//XXX: SyracuseSolver Thread Priority
+					syracuseThread.setPriority(Thread.MAX_PRIORITY);//XXX: SyracuseSolver Thread Priority
 					syracuseThread.start();
 					BFLog.i("Started Solver on an interval [%s...%s]", split[3], end);
 				}
 				else if (read.equals("SHUTDOWN"))
 				{
 					BFLog.i("Server has been stopped.");
-					break;
+					BFLog.exit("Server has been manually stopped.");
+					return;
 				}
 			}
-			throw new RuntimeException("readLine() = null");
+			throw new BFException("readLine() = null");
 		}
 		catch (Exception t)
 		{
 			BFLog.t(t);
-			BFLog.exit("Error occurred while communicating with server.");
+			BFLog.e("Error occurred while communicating with server.");
 		}
+		syracuseThread.interrupt();
+		syracuseSolver = null;
+		reconnect();
+	}
+	
+	private void reconnect()
+	{
+		BFLog.i("Reconnecting to server...");
+		BFClient client = BFClient.getClient();
+		BFClient.instantiate(client.id, client.ip, client.port);
 	}
 	
 	/**

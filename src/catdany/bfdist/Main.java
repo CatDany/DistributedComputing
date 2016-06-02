@@ -23,7 +23,7 @@ public class Main
 	/**
 	 * Server will drop a client if no messages were received in the last <code>N</code> milliseconds
 	 */
-	public static final long CLIENT_TIMEOUT   = 10000;
+	public static final long CLIENT_TIMEOUT   = 20000;
 	
 	/**
 	 * Arguments usage (used for error messages)
@@ -32,11 +32,11 @@ public class Main
 	/**
 	 * Version in convention (major.minor-maintenance/build)
 	 */
-	public static final String VERSION_NAME = "2.0-a3";
+	public static final String VERSION_NAME = "2.1-a4";
 	/**
 	 * Datetime in <u>seconds</u> representing when this version was built
 	 */
-	public static final long VERSION_DATE = 1464158008L;
+	public static final long VERSION_DATE = 1464880549L;
 	
 	/**
 	 * Side that the program is running on (client/server)<br>

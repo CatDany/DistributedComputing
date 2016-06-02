@@ -62,6 +62,7 @@ public class Mailer
 			try
 			{
 				send(session, sendTo, sendFrom, subject, body, attachment);
+				BFLog.i("Sent an e-mail.");
 				break;
 			}
 			catch (MessagingException t)

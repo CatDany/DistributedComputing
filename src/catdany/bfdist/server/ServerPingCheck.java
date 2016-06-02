@@ -41,6 +41,7 @@ public class ServerPingCheck implements Runnable
 		if (now > client.lastUpdateTime + timeout)
 		{
 			client.dropped = true;
+			future.cancel(false);
 		}
 	}
 }

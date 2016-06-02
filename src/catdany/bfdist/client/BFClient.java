@@ -22,10 +22,14 @@ public class BFClient
 	private Socket socket;
 	
 	public final UUID id;
+	public final InetAddress ip;
+	public final int port;
 	
 	public BFClient(UUID id, InetAddress ip, int port)
 	{
 		this.id = id;
+		this.ip = ip;
+		this.port = port;
 		connect(ip, port);
 	}
 	
@@ -58,7 +62,8 @@ public class BFClient
 		catch (IOException t)
 		{
 			BFLog.t(t);
-			BFLog.exit("Unable to create client socket on client-side.");
+			BFLog.e("Unable to create client socket on client-side.");
+			connect(ip, port);
 		}
 	}
 	

@@ -33,6 +33,7 @@ public class BFServer implements Runnable
 	long autoCompLogTimer = 0;
 	int maxSteps = 0;
 	public long autoReportTimer;
+	public long autoEmailReportTimer;
 	public BigInteger freeInterval;
 	public BigInteger clientBuffer;
 	
@@ -204,15 +205,19 @@ public class BFServer implements Runnable
 			p.println(freeInterval);
 			p.println(clientBuffer);
 			p.println(autoReportTimer);
-			p.print(autoCompLogTimer);
+			p.println(autoCompLogTimer);
+			p.println(autoEmailReportTimer);
+			p.print(maxSteps);//DON'T ADD A NEW LINE AT THE END OF FILE
 			BFLog.i("Saved free interval [%s...inf]", freeInterval);
 			BFLog.i("Saved client buffer (%s)", clientBuffer);
 			BFLog.i("Saved auto-report time (%s)", autoReportTimer);
 			BFLog.i("Saved auto-complog time (%s)", autoCompLogTimer);
+			BFLog.i("Saved auto e-mail report time (%s)", autoEmailReportTimer);
+			BFLog.i("Saved max steps for 1 calculation (%s)", maxSteps);
 		}
 		catch (FileNotFoundException t)
 		{
-			BFLog.e("Couldn't save progress.");
+			BFLog.e("Couldn't save settings and progress.");
 			BFLog.t(t);
 		}
 	}
@@ -222,25 +227,31 @@ public class BFServer implements Runnable
 		try
 		{
 			List<String> serverIntervalLines = Files.readAllLines(new File("INTERVAL_SERVER.txt").toPath());
-			if (serverIntervalLines.size() >= 4)
+			if (serverIntervalLines.size() >= 6)
 			{
 				String freeIntervalStr = serverIntervalLines.get(0);
 				String clientBufferStr = serverIntervalLines.get(1);
 				String autoReportTimerStr = serverIntervalLines.get(2);
 				String autoCompLogTimerStr = serverIntervalLines.get(3);
+				String autoEmailReportTimerStr = serverIntervalLines.get(4);
+				String maxStepsStr = serverIntervalLines.get(5);
 				freeInterval = new BigInteger(freeIntervalStr);
 				clientBuffer = new BigInteger(clientBufferStr);
 				autoReportTimer = Long.parseLong(autoReportTimerStr);
 				autoCompLogTimer = Long.parseLong(autoCompLogTimerStr);
+				autoEmailReportTimer = Long.parseLong(autoEmailReportTimerStr);
+				maxSteps = Integer.parseInt(maxStepsStr);
 				BFLog.i("Restored free interval [%s...inf]", freeIntervalStr);
 				BFLog.i("Restored client buffer (%s)", clientBufferStr);
 				BFLog.i("Restored auto-report time (%s)", autoReportTimerStr);
 				BFLog.i("Restored auto-complog time (%s)", autoCompLogTimerStr);
+				BFLog.i("Restored auto e-mail report time (%s)", autoEmailReportTimer);
+				BFLog.i("Restored max steps for 1 calculation (%s)", maxStepsStr);
 			}
 		}
 		catch (IOException t)
 		{
-			BFLog.e("Unable to restore free interval.");
+			BFLog.e("Unable to restore settings and progress.");
 			BFLog.t(t);
 		}
 	}

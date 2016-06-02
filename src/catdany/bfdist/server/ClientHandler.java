@@ -9,13 +9,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 
 import catdany.bfdist.BFHelper;
 import catdany.bfdist.Main;
+import catdany.bfdist.log.BFException;
 import catdany.bfdist.log.BFLog;
 
 public class ClientHandler implements Runnable
@@ -36,7 +36,6 @@ public class ClientHandler implements Runnable
 	long lastCompLogTime = 0;
 	String lastCompLogNumber = null;
 	
-	@SuppressWarnings("unused")
 	private ServerPingCheck ping;
 	long lastUpdateTime = System.currentTimeMillis();
 	boolean dropped = false;
@@ -104,7 +103,7 @@ public class ClientHandler implements Runnable
 				else if (read.startsWith("SPTIME"))
 				{
 					String[] split = read.split(" ");
-					//XXX: SPTIME complog? compLog("%s ms>%s", split[1], split[2]);
+					//XXX: SPTIME complog?//compLog("%s ms>%s", split[1], split[2]);
 					BFLog.w("Calculation took too long (% ms) >> %s", split[1], split[2]);
 				}
 				else if (read.startsWith("SPMSR")) // max steps reached
@@ -115,7 +114,7 @@ public class ClientHandler implements Runnable
 				}
 			}
 			if (dropped)
-				throw new SocketTimeoutException("Too long without response.");
+				throw new BFException("Too long (%s ms) without any message.", ping.timeout);
 			else if (!server.shutdown)
 				throw new RuntimeException("readLine() = null");
 		}

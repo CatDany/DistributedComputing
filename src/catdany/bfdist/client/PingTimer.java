@@ -15,7 +15,7 @@ public class PingTimer implements Runnable
 	public PingTimer(long pingTime, ServerCom com)
 	{
 		this.com = com;
-		this.executor = Executors.newScheduledThreadPool(1);
+		this.executor = Executors.newSingleThreadScheduledExecutor();
 		this.future = executor.scheduleAtFixedRate(this, pingTime, pingTime, TimeUnit.MILLISECONDS);
 	}
 	

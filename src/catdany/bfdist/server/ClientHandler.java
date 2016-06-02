@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import catdany.bfdist.BFHelper;
 import catdany.bfdist.Main;
-import catdany.bfdist.log.BFException;
 import catdany.bfdist.log.BFLog;
 
 public class ClientHandler implements Runnable
@@ -36,6 +35,7 @@ public class ClientHandler implements Runnable
 	long lastCompLogTime = 0;
 	String lastCompLogNumber = null;
 	
+	@SuppressWarnings("unused")
 	private ServerPingCheck ping;
 	long lastUpdateTime = System.currentTimeMillis();
 	boolean dropped = false;
@@ -113,9 +113,7 @@ public class ClientHandler implements Runnable
 					BFLog.w("Calculation took %s steps >> %s", server.maxSteps, number);
 				}
 			}
-			if (dropped)
-				throw new BFException("Too long (%s ms) without any message.", ping.timeout);
-			else if (!server.shutdown)
+			if (!server.shutdown)
 				throw new RuntimeException("readLine() = null");
 		}
 		catch (Exception t)

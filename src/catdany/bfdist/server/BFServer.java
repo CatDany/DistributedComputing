@@ -60,7 +60,6 @@ public class BFServer implements Runnable
 			BFLog.exit("Port %s is out of range (0-65535).", port);
 		}
 		restoreServerIntervals();
-		scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 		this.serverThread = new Thread(this, "SocketAcceptor");
 		serverThread.start();
 	}
@@ -250,6 +249,7 @@ public class BFServer implements Runnable
 				BFLog.i("Restored auto-complog time (%s)", autoCompLogTimerStr);
 				BFLog.i("Restored auto e-mail report time (%s)", autoEmailReportTimer);
 				BFLog.i("Restored max steps for 1 calculation (%s)", maxStepsStr);
+				scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 			}
 		}
 		catch (IOException t)

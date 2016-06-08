@@ -29,6 +29,8 @@ public class ClientHandler implements Runnable
 	
 	public PrintWriter compLogger;
 
+	public int coefFirst = 0;
+	public int coefSecond = 0;
 	public String current = null;
 	public String max = null;
 	
@@ -75,7 +77,6 @@ public class ClientHandler implements Runnable
 					BFLog.i("Client %s identified. UUID: %s", socket.getRemoteSocketAddress().toString(), id);
 					handlerThread.setName(handlerThread.getName() + "-" + id);
 					restoreClientInterval();
-					compLogger = new PrintWriter(new FileWriter("COMPLOG_" + id + ".txt", true), true);
 					if (server.freeInterval != null && server.clientBuffer != null)
 					{
 						if (current != null && max != null)
@@ -88,29 +89,29 @@ public class ClientHandler implements Runnable
 						}
 					}
 				}
-				else if (read.startsWith("SPCOMPLETE"))
+				// Custom-Solver
+				else if (read.startsWith("CSPCOMPLETE"))
 				{
 					BFLog.i("%s has completed its calculation [%s...%s]", this, current, max);
 					compLogAuto(max, true);
 					server.allocate(server.clientBuffer, this);
 				}
-				else if (read.startsWith("SPDONE"))
+				else if (read.startsWith("CSPDONE"))
+				{
+					current = read.substring("CSPDONE ".length());
+					compLog("OK " + current);
+				}
+				else if (read.startsWith("CSPMSR")) // max steps reached
+				{
+					current = read.substring("CSPMSR ".length());
+					compLog("MSR " + current);
+				}
+				else if (read.startsWith("CSPCYCLE"))
 				{
 					String[] split = read.split(" ");
-					current = split[2];
-					compLogAuto(current, false);
-				}
-				else if (read.startsWith("SPTIME"))
-				{
-					String[] split = read.split(" ");
-					//XXX: SPTIME complog?//compLog("%s ms>%s", split[1], split[2]);
-					BFLog.w("Calculation took too long (% ms) >> %s", split[1], split[2]);
-				}
-				else if (read.startsWith("SPMSR")) // max steps reached
-				{
-					String number = read.substring("SPMSR ".length());
-					compLog("MSR %s", number);
-					BFLog.w("Calculation took %s steps >> %s", server.maxSteps, number);
+					current = split[1];
+					String cycle = split[2];
+					compLog("CY " + cycle + " " + current);
 				}
 			}
 			if (!server.shutdown)
@@ -122,7 +123,6 @@ public class ClientHandler implements Runnable
 			BFLog.w("Error occurred during client handling. Client dropped.");
 			server.kick(this);
 		}
-		compLogAuto(current, true);
 		// Closing resources
 		if (compLogger != null)
 		{
@@ -147,21 +147,31 @@ public class ClientHandler implements Runnable
 		BFLog.d("Sent '%s' to client %s", msg, id);
 	}
 	
-	private void compLog(String format, Object... args)
+	private void compLog(String s)
 	{
-		compLogger.println(String.format(format, args));
+		compLogger.println(s);
 	}
 	
+	@Deprecated
 	private void compLogAuto(String number, boolean forced)
 	{
 		long now = System.currentTimeMillis();
 		if (forced || now > lastCompLogTime + server.autoCompLogTimer)
 		{
-			compLog("%s;%s", lastCompLogNumber, number);
+			compLog(lastCompLogNumber + ";" + number);
 			BFLog.d("Comp log for interval [%s...%s]", lastCompLogNumber, number);
 			lastCompLogTime = now;
 			lastCompLogNumber = number;
 		}
+	}
+	
+	void setCompLog(String filename) throws IOException
+	{
+		if (compLogger != null)
+		{
+			compLogger.close();
+		}
+		compLogger = new PrintWriter(new FileWriter("COMPLOG_" + filename + ".txt", true), true);
 	}
 	
 	@Override
@@ -176,7 +186,9 @@ public class ClientHandler implements Runnable
 		{
 			p.println(current);
 			p.println(max);
-			BFLog.i("Saved allocated interval [%s...%s]", current, max);
+			p.println(coefFirst);
+			p.println(coefSecond);
+			BFLog.i("Saved allocated interval [%s...%s] for %s", current, max, Main.anplusb(coefFirst, coefSecond));
 		}
 		catch (FileNotFoundException t)
 		{
@@ -197,7 +209,9 @@ public class ClientHandler implements Runnable
 				{
 					current = saveLines.get(0);
 					max = saveLines.get(1);
-					BFLog.i("Restored allocated interval from save: [%s...%s]", current, max);
+					coefFirst = Integer.parseInt(saveLines.get(2));
+					coefSecond = Integer.parseInt(saveLines.get(3));
+					BFLog.i("Restored allocated interval from save: [%s...%s] for %s", current, max, Main.anplusb(coefFirst, coefSecond));
 				}
 			}
 			catch (IOException t)

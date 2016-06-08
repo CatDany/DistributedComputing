@@ -32,12 +32,17 @@ public class BFServer implements Runnable
 	/**
 	 * Write to compLog every N ms
 	 */
+	@Deprecated
 	long autoCompLogTimer = 0;
 	int maxSteps = 0;
+	@Deprecated
 	public long autoReportTimer;
 	public long autoEmailReportTimer;
 	public BigInteger freeInterval;
 	public BigInteger clientBuffer;
+	
+	public int coefFirst;
+	public int coefSecond;
 	
 	public boolean shutdown = false;
 	
@@ -177,7 +182,14 @@ public class BFServer implements Runnable
 		client.current = amount.toString();
 		client.lastCompLogNumber = freeInterval.toString();
 		client.lastCompLogTime = System.currentTimeMillis();
-		client.send("SPSTART " + autoReportTimer + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
+		try
+		{
+			client.setCompLog(Main.anplusb(coefFirst, coefSecond) + "_" + client.id.toString());
+		} catch (IOException e) {
+			BFLog.e("Couldn't create a complog");
+			BFLog.t(e);
+		}
+		client.send("CSPSTART " + coefFirst + " " + coefSecond + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
 		client.max = freeInterval.add(amount).toString();
 		BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
 		freeInterval = freeInterval.add(amount);
@@ -194,7 +206,14 @@ public class BFServer implements Runnable
 		BigInteger max = new BigInteger(client.max);
 		client.lastCompLogNumber = client.current;
 		client.lastCompLogTime = System.currentTimeMillis();
-		client.send("SPSTART " + autoReportTimer + " " + maxSteps + " " + client.current + " " + max.subtract(current));
+		try
+		{
+			client.setCompLog(Main.anplusb(coefFirst, coefSecond) + "_" + client.id.toString());
+		} catch (IOException e) {
+			BFLog.e("Couldn't create a complog");
+			BFLog.t(e);
+		}
+		client.send("CSPSTART " + client.coefFirst + " " + client.coefSecond + " " + maxSteps + " " + client.current + " " + max.subtract(current));
 		BFLog.i("Allocated [%s...%s] to %s", client.current, client.max, client);
 	}
 	
@@ -206,16 +225,15 @@ public class BFServer implements Runnable
 			String clientBuffer = this.clientBuffer.toString();
 			p.println(freeInterval);
 			p.println(clientBuffer);
-			p.println(autoReportTimer);
-			p.println(autoCompLogTimer);
 			p.println(autoEmailReportTimer);
-			p.print(maxSteps);//DON'T ADD A NEW LINE AT THE END OF FILE
+			p.println(maxSteps);
+			p.println(coefFirst);
+			p.println(coefSecond);
 			BFLog.i("Saved free interval [%s...inf]", freeInterval);
 			BFLog.i("Saved client buffer (%s)", clientBuffer);
-			BFLog.i("Saved auto-report time (%s)", autoReportTimer);
-			BFLog.i("Saved auto-complog time (%s)", autoCompLogTimer);
 			BFLog.i("Saved auto e-mail report time (%s)", autoEmailReportTimer);
 			BFLog.i("Saved max steps for 1 calculation (%s)", maxSteps);
+			BFLog.i("Saved coefficients (%s)", Main.anplusb(coefFirst, coefSecond));
 		}
 		catch (FileNotFoundException t)
 		{
@@ -233,22 +251,21 @@ public class BFServer implements Runnable
 			{
 				String freeIntervalStr = serverIntervalLines.get(0);
 				String clientBufferStr = serverIntervalLines.get(1);
-				String autoReportTimerStr = serverIntervalLines.get(2);
-				String autoCompLogTimerStr = serverIntervalLines.get(3);
-				String autoEmailReportTimerStr = serverIntervalLines.get(4);
-				String maxStepsStr = serverIntervalLines.get(5);
+				String autoEmailReportTimerStr = serverIntervalLines.get(2);
+				String maxStepsStr = serverIntervalLines.get(3);
+				String coefFirstStr = serverIntervalLines.get(4);
+				String coefSecondStr = serverIntervalLines.get(5);
 				freeInterval = new BigInteger(freeIntervalStr);
 				clientBuffer = new BigInteger(clientBufferStr);
-				autoReportTimer = Long.parseLong(autoReportTimerStr);
-				autoCompLogTimer = Long.parseLong(autoCompLogTimerStr);
 				autoEmailReportTimer = Long.parseLong(autoEmailReportTimerStr);
 				maxSteps = Integer.parseInt(maxStepsStr);
+				coefFirst = Integer.parseInt(coefFirstStr);
+				coefSecond = Integer.parseInt(coefSecondStr);
 				BFLog.i("Restored free interval [%s...inf]", freeIntervalStr);
 				BFLog.i("Restored client buffer (%s)", clientBufferStr);
-				BFLog.i("Restored auto-report time (%s)", autoReportTimerStr);
-				BFLog.i("Restored auto-complog time (%s)", autoCompLogTimerStr);
 				BFLog.i("Restored auto e-mail report time (%s)", autoEmailReportTimer);
 				BFLog.i("Restored max steps for 1 calculation (%s)", maxStepsStr);
+				BFLog.i("Restored coefficients (%s)", Main.anplusb(coefFirst, coefSecond));
 				scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 			}
 		}

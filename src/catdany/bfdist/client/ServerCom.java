@@ -15,7 +15,7 @@ import catdany.bfdist.Main;
 import catdany.bfdist.log.BFException;
 import catdany.bfdist.log.BFLog;
 
-public class ServerCom implements Runnable
+public class ServerCom implements Runnable, Sender
 {
 	public final Socket socket;
 	
@@ -23,8 +23,8 @@ public class ServerCom implements Runnable
 	private BufferedReader in;
 	private PrintWriter out;
 	
-	private Thread syracuseThread;
-	private SyracuseSolver syracuseSolver;
+	private Thread solverThread;
+	private CustomSolver solver;
 	
 	@SuppressWarnings("unused")
 	private PingTimer ping;
@@ -56,21 +56,23 @@ public class ServerCom implements Runnable
 			while ((read = in.readLine()) != null)
 			{
 				BFLog.d("Received message from server: %s", read);
-				if (read.startsWith("SPSTART"))
+				if (read.startsWith("CSPSTART"))
 				{
-					if (syracuseThread != null)
+					if (solverThread != null)
 					{
-						syracuseThread.interrupt();
-						syracuseSolver = null;
+						solverThread.interrupt();
+						solver = null;
 					}
 					String[] split = read.split(" ");
-					BigInteger start = new BigInteger(split[3]);
-					BigInteger end = new BigInteger(split[3]).add(new BigInteger(split[4]));
-					syracuseSolver = new SyracuseSolver(Long.parseLong(split[1]), Integer.parseInt(split[2]), start, end, this);
-					syracuseThread = new Thread(syracuseSolver, "Syracuse-Solver");
-					syracuseThread.setPriority(Thread.MAX_PRIORITY);//XXX: SyracuseSolver Thread Priority
-					syracuseThread.start();
-					BFLog.i("Started Solver on an interval [%s...%s]", split[3], end);
+					BigInteger start = new BigInteger(split[4]);
+					BigInteger end = new BigInteger(split[4]).add(new BigInteger(split[5]));
+					int coefFirst = Integer.parseInt(split[1]);
+					int coefSecond = Integer.parseInt(split[2]);
+					solver = new CustomSolver(Integer.parseInt(split[3]), start, end, coefFirst, coefSecond, this);
+					solverThread = new Thread(solver, "Custom-Solver");
+					solverThread.setPriority(Thread.MAX_PRIORITY);//XXX: Solver Thread Priority
+					solverThread.start();
+					BFLog.i("Started Solver on an interval [%s...%s] for %s", split[4], end, Main.anplusb(coefFirst, coefSecond));
 				}
 				else if (read.equals("SHUTDOWN"))
 				{
@@ -86,8 +88,9 @@ public class ServerCom implements Runnable
 			BFLog.t(t);
 			BFLog.e("Error occurred while communicating with server.");
 		}
-		syracuseThread.interrupt();
-		syracuseSolver = null;
+		if (solverThread != null)
+			solverThread.interrupt();
+		solver = null;
 		reconnect();
 	}
 	

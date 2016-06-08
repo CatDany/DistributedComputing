@@ -74,7 +74,7 @@ public class Reporter implements Runnable
 		{
 			BFLog.e("You fucked up.");
 			BFLog.t(t);
-			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "DistComp Report :: You fucked up", BFHelper.writeException(t), null, MAX_EMAIL_ATTEMPTS);
+			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "[D] DistComp Report :: You fucked up", BFHelper.writeException(t), null, MAX_EMAIL_ATTEMPTS);
 			clientDump = "Failed to dump clients > " + t.getClass().getName();
 		}
 		catch (Exception t)
@@ -91,17 +91,17 @@ public class Reporter implements Runnable
 		{
 			BFLog.e("Unable to zip and archive complogs.");
 			BFLog.t(t);
-			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "DistComp Report :: ZipError", clientDump + "\n" + BFHelper.writeException(t), null, MAX_EMAIL_ATTEMPTS);
+			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "[D] DistComp Report :: ZipError", clientDump + "\n" + BFHelper.writeException(t), null, MAX_EMAIL_ATTEMPTS);
 			return;
 		}
 		long sizeOfZip = FileUtils.sizeOf(zipFile);
 		if (sizeOfZip > ATTACHMENT_MAX_SIZE)
 		{
-			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "DistComp Report :: ZipTooBig", "Zip file is too big: " + sizeOfZip + " bytes\n\n" + clientDump, null, MAX_EMAIL_ATTEMPTS);
+			mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "[D] DistComp Report :: ZipTooBig", "Zip file is too big: " + sizeOfZip + " bytes\n\n" + clientDump, null, MAX_EMAIL_ATTEMPTS);
 			return;
 		}
 		// Sending e-mail
-		mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "DistComp Report :: OK", "Successful DistComp report.\n\n" + clientDump, zipFile, MAX_EMAIL_ATTEMPTS);
+		mailer.sendTry(ses, emailAddressTo, EMAIL_FROM, "[D] DistComp Report :: OK", "Successful DistComp report.\n\n" + clientDump, zipFile, MAX_EMAIL_ATTEMPTS);
 	}
 	
 	private static File performZipping()

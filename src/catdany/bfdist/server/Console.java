@@ -38,25 +38,19 @@ public class Console implements Runnable
 					String[] split = read.split(" ");
 					BigInteger beginAt = new BigInteger(split[1]);
 					server.clientBuffer = new BigInteger(split[2]);
-					long autoReportTimer = Long.parseLong(split[3]);
-					long autoCompLogTimer = Long.parseLong(split[4]);
-					long autoEmailReportTimer = Long.parseLong(split[5]);
-					int maxSteps = Integer.parseInt(split[6]);
-					server.autoReportTimer = autoReportTimer;
-					BFLog.i("Set auto-report time to %s ms", autoReportTimer);
-					server.autoCompLogTimer = autoCompLogTimer;
-					BFLog.i("Set auto-complog time to %s ms", autoCompLogTimer);
+					server.coefFirst = Integer.parseInt(split[3]);
+					server.coefSecond = Integer.parseInt(split[4]);
+					server.autoEmailReportTimer = Long.parseLong(split[5]);
+					server.maxSteps = Integer.parseInt(split[6]);
 					server.freeInterval = beginAt;
 					BFLog.i("Free interval is set to [%s...inf]", server.freeInterval);
-					server.autoEmailReportTimer = autoEmailReportTimer;
-					server.scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
-					BFLog.i("Scheduled auto e-mail report in %s %s", autoEmailReportTimer, TimeUnit.MINUTES);
-					server.maxSteps = maxSteps;
+					server.scheduledEmailReporter = Reporter.startOnSchedule(1, server.autoEmailReportTimer, TimeUnit.MINUTES);
+					BFLog.i("Scheduled auto e-mail report in %s %s", server.autoEmailReportTimer, TimeUnit.MINUTES);
 					File currentDir = new File(".");
 					for (File i : currentDir.listFiles())
 					{
 						String filename = i.getName();
-						if (filename.startsWith("INTERVAL_") && filename.length() == "INTERVAL_2bb20e1c-110c-39dc-9769-c5a151430a06.txt".length())
+						if (filename.startsWith("INTERVAL_") && filename.length() >= "INTERVAL_2bb20e1c-110c-39dc-9769-c5a151430a06.txt".length())
 						{
 							try
 							{
@@ -97,7 +91,7 @@ public class Console implements Runnable
 				{
 					BFLog.w("Unknown command.");
 					BFLog.i("Command list:");
-					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [autoReportTimer:long] [autoCompLogTimer:long] [emailReportTimerMinutes:int] [maxSteps:int]");
+					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [coefFirst:int] [coefSecond:int] [emailReportTimerMinutes:int] [maxSteps:int]");
 					BFLog.i("-- Save progress and close server: x");
 				}
 			}

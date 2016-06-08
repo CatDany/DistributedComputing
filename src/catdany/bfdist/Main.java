@@ -4,13 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.UUID;
 
 import catdany.bfdist.client.BFClient;
+import catdany.bfdist.client.CustomSolver;
+import catdany.bfdist.client.Sender;
 import catdany.bfdist.log.BFLog;
 import catdany.bfdist.server.BFServer;
 
@@ -32,11 +36,11 @@ public class Main
 	/**
 	 * Version in convention (major.minor-maintenance/build)
 	 */
-	public static final String VERSION_NAME = "2.1-a7";
+	public static final String VERSION_NAME = "2.2-a8";
 	/**
 	 * Datetime in <u>seconds</u> representing when this version was built
 	 */
-	public static final long VERSION_DATE = 1465263948L;
+	public static final long VERSION_DATE = 1465355059L;
 	
 	/**
 	 * Side that the program is running on (client/server)<br>
@@ -62,7 +66,34 @@ public class Main
 		{
 			BFLog.exit("No runtime arguments. Try: %s", ARGS_USAGE);
 		}
-		if (args[0].equals("server"))
+		if (args[0].equals("manual"))
+		{
+			Scanner in = new Scanner(System.in);
+			System.out.println("Initial:");
+			BigInteger initial = new BigInteger(in.nextLine());
+			System.out.println("Max:");
+			BigInteger max = new BigInteger(in.nextLine());
+			System.out.println("Max steps:");
+			int maxSteps = Integer.parseInt(in.nextLine());
+			System.out.println("First coefficient:");
+			int coefFirst = Integer.parseInt(in.nextLine());
+			System.out.println("Second coefficient:");
+			int coefSecond = Integer.parseInt(in.nextLine());
+			in.close();
+			
+			CustomSolver solver = new CustomSolver(maxSteps, initial, max, coefFirst, coefSecond,
+					new Sender()
+					{
+						@Override
+						public void sendToServer(String s)
+						{
+							System.out.println("send: " + s);
+						}
+					});
+			Thread thread = new Thread(solver, "Manual-Custom-Solver");
+			thread.start();
+		}
+		else if (args[0].equals("server"))
 		{
 			side = Side.SERVER;
 			port = Integer.parseInt(args[1]);
@@ -154,5 +185,20 @@ public class Main
 	public static String getBuildDate()
 	{
 		return BFHelper.dateFormatVersion.format(new Date(VERSION_DATE * 1000));
+	}
+	
+	/**
+	 * 
+	 * @param coefFirst The first argument
+	 * @param coefSecond The second argument
+	 * @return
+	 * <ul>
+	 * <li><code>coefSecond</code> is negative, concatenates the first argument, <code>"n-"</code> and the second argument.
+	 * <li><code>coefSecond</code> is <code>0</code> or positive, concatenates the first argument, <code>"n+"</code> and the second argument. 
+	 * </ul>
+	 */
+	public static String anplusb(int coefFirst, int coefSecond)
+	{
+		return coefFirst + "n" + (Integer.signum(coefSecond) == -1 ? "" : '+') + coefSecond;
 	}
 }

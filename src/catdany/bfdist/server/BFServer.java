@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -41,10 +42,17 @@ public class BFServer implements Runnable
 	public BigInteger freeInterval;
 	public BigInteger clientBuffer;
 	
-	public int coefFirst;
-	public int coefSecond;
+	public int coefIndex = 0;
+	public int[] coefFirstArray;
+	public int[] coefSecondArray;
 	
 	public boolean shutdown = false;
+	
+	/**
+	 * If <code>true</code> then {@link #allocate(BigInteger, ClientHandler)} will no longer allocate intervals.<br>
+	 * Set to <code>true</code> when <code>{@link #coefIndex} >= {@link #coefFirstArray}.length</code>
+	 */
+	public boolean stopAllocation = false;
 	
 	private BFServer(int port)
 	{
@@ -65,6 +73,7 @@ public class BFServer implements Runnable
 			BFLog.exit("Port %s is out of range (0-65535).", port);
 		}
 		restoreServerIntervals();
+		loadCoefficientsFromFile();
 		this.serverThread = new Thread(this, "SocketAcceptor");
 		serverThread.start();
 	}
@@ -179,21 +188,28 @@ public class BFServer implements Runnable
 	 */
 	public synchronized void allocate(BigInteger amount, ClientHandler client)
 	{
-		client.current = amount.toString();
-		client.lastCompLogNumber = freeInterval.toString();
-		client.lastCompLogTime = System.currentTimeMillis();
-		try
+		if (!stopAllocation)
 		{
-			client.setCompLog(Main.anplusb(coefFirst, coefSecond) + "_" + client.id.toString());
-		} catch (IOException e) {
-			BFLog.e("Couldn't create a complog");
-			BFLog.t(e);
+			client.current = amount.toString();
+			client.lastCompLogNumber = freeInterval.toString();
+			client.lastCompLogTime = System.currentTimeMillis();
+			try
+			{
+				client.setCompLog(Main.anplusb(coefFirstArray[coefIndex], coefSecondArray[coefIndex]) + "_" + client.id.toString());
+			} catch (IOException e) {
+				BFLog.e("Couldn't create a complog");
+				BFLog.t(e);
+			}
+			client.send("CSPSTART " + coefFirstArray[coefIndex] + " " + coefSecondArray[coefIndex] + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
+			client.max = freeInterval.add(amount).toString();
+			BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
+			//freeInterval = freeInterval.add(amount); XXX:freeInterval++
+			BFLog.i("Free interval is set to [%s...inf]", freeInterval);
+			
+			coefIndex++;
+			if (coefFirstArray.length >= coefIndex)
+				stopAllocation = true;
 		}
-		client.send("CSPSTART " + coefFirst + " " + coefSecond + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
-		client.max = freeInterval.add(amount).toString();
-		BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
-		freeInterval = freeInterval.add(amount);
-		BFLog.i("Free interval is set to [%s...inf]", freeInterval);
 	}
 	
 	/**
@@ -208,7 +224,7 @@ public class BFServer implements Runnable
 		client.lastCompLogTime = System.currentTimeMillis();
 		try
 		{
-			client.setCompLog(Main.anplusb(coefFirst, coefSecond) + "_" + client.id.toString());
+			client.setCompLog(Main.anplusb(client.coefFirst, client.coefSecond) + "_" + client.id.toString());
 		} catch (IOException e) {
 			BFLog.e("Couldn't create a complog");
 			BFLog.t(e);
@@ -227,13 +243,12 @@ public class BFServer implements Runnable
 			p.println(clientBuffer);
 			p.println(autoEmailReportTimer);
 			p.println(maxSteps);
-			p.println(coefFirst);
-			p.println(coefSecond);
+			p.println(coefIndex);
 			BFLog.i("Saved free interval [%s...inf]", freeInterval);
 			BFLog.i("Saved client buffer (%s)", clientBuffer);
 			BFLog.i("Saved auto e-mail report time (%s)", autoEmailReportTimer);
 			BFLog.i("Saved max steps for 1 calculation (%s)", maxSteps);
-			BFLog.i("Saved coefficients (%s)", Main.anplusb(coefFirst, coefSecond));
+			BFLog.i("Saved coef index (%s)", coefIndex);
 		}
 		catch (FileNotFoundException t)
 		{
@@ -247,31 +262,51 @@ public class BFServer implements Runnable
 		try
 		{
 			List<String> serverIntervalLines = Files.readAllLines(new File("INTERVAL_SERVER.txt").toPath());
-			if (serverIntervalLines.size() >= 6)
+			if (serverIntervalLines.size() >= 5)
 			{
 				String freeIntervalStr = serverIntervalLines.get(0);
 				String clientBufferStr = serverIntervalLines.get(1);
 				String autoEmailReportTimerStr = serverIntervalLines.get(2);
 				String maxStepsStr = serverIntervalLines.get(3);
-				String coefFirstStr = serverIntervalLines.get(4);
-				String coefSecondStr = serverIntervalLines.get(5);
+				String coefIndexStr = serverIntervalLines.get(4);
 				freeInterval = new BigInteger(freeIntervalStr);
 				clientBuffer = new BigInteger(clientBufferStr);
 				autoEmailReportTimer = Long.parseLong(autoEmailReportTimerStr);
 				maxSteps = Integer.parseInt(maxStepsStr);
-				coefFirst = Integer.parseInt(coefFirstStr);
-				coefSecond = Integer.parseInt(coefSecondStr);
+				coefIndex = Integer.parseInt(coefIndexStr);
 				BFLog.i("Restored free interval [%s...inf]", freeIntervalStr);
 				BFLog.i("Restored client buffer (%s)", clientBufferStr);
-				BFLog.i("Restored auto e-mail report time (%s)", autoEmailReportTimer);
+				BFLog.i("Restored auto e-mail report time (%s)", autoEmailReportTimerStr);
 				BFLog.i("Restored max steps for 1 calculation (%s)", maxStepsStr);
-				BFLog.i("Restored coefficients (%s)", Main.anplusb(coefFirst, coefSecond));
+				BFLog.i("Restored coef index (%s)", coefIndexStr);
 				scheduledEmailReporter = Reporter.startOnSchedule(1, autoEmailReportTimer, TimeUnit.MINUTES);
 			}
 		}
 		catch (IOException t)
 		{
 			BFLog.e("Unable to restore settings and progress.");
+			BFLog.t(t);
+		}
+	}
+	
+	private void loadCoefficientsFromFile()
+	{
+		try
+		{
+			List<String> coefLines = Files.readAllLines(new File("COEF.txt").toPath());
+			coefFirstArray = new int[coefLines.size()];
+			coefSecondArray = new int[coefLines.size()];
+			for (int i = 0; i < coefLines.size(); i++)
+			{
+				String[] splitLine = coefLines.get(i).split(" ", 2);
+				coefFirstArray[i] = Integer.parseInt(splitLine[0]);
+				coefSecondArray[i] = Integer.parseInt(splitLine[1]);
+			}
+			BFLog.i("Restored %s coefficients.", coefLines.size());
+		}
+		catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException t)
+		{
+			BFLog.e("Unable to load coefficients from file.");
 			BFLog.t(t);
 		}
 	}

@@ -38,10 +38,8 @@ public class Console implements Runnable
 					String[] split = read.split(" ");
 					BigInteger beginAt = new BigInteger(split[1]);
 					server.clientBuffer = new BigInteger(split[2]);
-					server.coefFirst = Integer.parseInt(split[3]);
-					server.coefSecond = Integer.parseInt(split[4]);
-					server.autoEmailReportTimer = Long.parseLong(split[5]);
-					server.maxSteps = Integer.parseInt(split[6]);
+					server.autoEmailReportTimer = Long.parseLong(split[3]);
+					server.maxSteps = Integer.parseInt(split[4]);
 					server.freeInterval = beginAt;
 					BFLog.i("Free interval is set to [%s...inf]", server.freeInterval);
 					server.scheduledEmailReporter = Reporter.startOnSchedule(1, server.autoEmailReportTimer, TimeUnit.MINUTES);
@@ -91,7 +89,7 @@ public class Console implements Runnable
 				{
 					BFLog.w("Unknown command.");
 					BFLog.i("Command list:");
-					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [coefFirst:int] [coefSecond:int] [emailReportTimerMinutes:int] [maxSteps:int]");
+					BFLog.i("-- Initialize calculation: init [beginAt:BigInteger] [clientBuffer:BigInteger] [emailReportTimerMinutes:int] [maxSteps:int]");
 					BFLog.i("-- Save progress and close server: x");
 				}
 			}

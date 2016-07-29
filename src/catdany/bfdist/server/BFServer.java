@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -207,8 +206,10 @@ public class BFServer implements Runnable
 			BFLog.i("Free interval is set to [%s...inf]", freeInterval);
 			
 			coefIndex++;
-			if (coefFirstArray.length >= coefIndex)
+			if (coefIndex >= coefFirstArray.length)
+			{
 				stopAllocation = true;
+			}
 		}
 	}
 	

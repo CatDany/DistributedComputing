@@ -99,7 +99,7 @@ public class ClientHandler implements Runnable
 				else if (read.startsWith("CSPDONE"))
 				{
 					current = read.substring("CSPDONE ".length());
-					compLog("OK " + current);
+					//compLog("OK " + current); XXX: compLog OK
 				}
 				else if (read.startsWith("CSPMSR")) // max steps reached
 				{

@@ -36,11 +36,11 @@ public class Main
 	/**
 	 * Version in convention (major.minor-maintenance/build)
 	 */
-	public static final String VERSION_NAME = "2.2-a10";
+	public static final String VERSION_NAME = "2.2-a11";
 	/**
 	 * Datetime in <u>seconds</u> representing when this version was built
 	 */
-	public static final long VERSION_DATE = 1469803422L;
+	public static final long VERSION_DATE = 1469803661L;
 	
 	/**
 	 * Side that the program is running on (client/server)<br>

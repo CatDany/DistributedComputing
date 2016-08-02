@@ -199,7 +199,9 @@ public class BFServer implements Runnable
 				BFLog.e("Couldn't create a complog");
 				BFLog.t(e);
 			}
-			client.send("CSPSTART " + coefFirstArray[coefIndex] + " " + coefSecondArray[coefIndex] + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
+			client.coefFirst = coefFirstArray[coefIndex];
+			client.coefSecond = coefSecondArray[coefIndex];
+			client.send("CSPSTART " + client.coefFirst + " " + client.coefSecond + " " + maxSteps + " " + freeInterval.toString() + " " + client.current);
 			client.max = freeInterval.add(amount).toString();
 			BFLog.i("Allocated [%s...%s] to %s", freeInterval, client.max, client);
 			//freeInterval = freeInterval.add(amount); XXX:freeInterval++
